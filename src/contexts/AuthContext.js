@@ -1,6 +1,7 @@
 "use client"
 
 import { createContext, useState, useContext, useEffect } from "react"
+import axios from "axios"
 
 const AuthContext = createContext()
 
@@ -13,7 +14,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is logged in from localStorage
     const user = localStorage.getItem("user")
     if (user) {
       setCurrentUser(JSON.parse(user))
@@ -21,33 +21,44 @@ export const AuthProvider = ({ children }) => {
     setLoading(false)
   }, [])
 
-  // Login function
-  const login = (email, password, role) => {
-    // In a real app, you would make an API call to verify credentials
-    // This is a simplified version for demonstration
-
-    // Mock users for demo
-    const adminUser = { id: 1, email: "admin@restaurant.com", role: "admin", name: "Admin User" }
-    const deliveryUser = { id: 2, email: "delivery@restaurant.com", role: "delivery", name: "Delivery User" }
-
-    let user = null
-
-    if (email === "admin@restaurant.com" && password === "password" && role === "admin") {
-      user = adminUser
-    } else if (email === "delivery@restaurant.com" && password === "password" && role === "delivery") {
-      user = deliveryUser
+  const adminLogin = async (email, password) => {
+    try {
+      const response = await axios.post("login/", { email, password })
+      if (response.data) {
+        console.log(response.data)
+        const email = response.data.user.email
+        const token = response.data.token
+        const user = { email, token, role: "admin" }
+        localStorage.setItem("user", JSON.stringify(user))
+        setCurrentUser(user)
+        return true
+      }
+    } catch (error) {
+      console.error(error)
+      return false
     }
-
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user))
-      setCurrentUser(user)
-      return true
-    }
-
     return false
   }
 
-  // Logout function
+  const deliveryLogin = async (phone, password) => {
+    const phone_12 = "+91" + phone
+    try {
+      const response = await axios.post("deliveryman/login/", { phone_number: phone_12, password })
+      // console.log(response)
+      if (response.data) {
+        const { phone_number, token } = response.data
+        const user = { phone: phone_number, token, role: "delivery" }
+        localStorage.setItem("user", JSON.stringify(user))
+        setCurrentUser(user)
+        return true
+      }
+    } catch (error) {
+      console.error(error)
+      return false
+    }
+    return false
+  }
+
   const logout = () => {
     localStorage.removeItem("user")
     setCurrentUser(null)
@@ -55,7 +66,8 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     currentUser,
-    login,
+    adminLogin,
+    deliveryLogin,
     logout,
   }
 

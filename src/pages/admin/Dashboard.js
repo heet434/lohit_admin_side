@@ -15,7 +15,7 @@ const Dashboard = () => {
               <div className="stat-details">
                 <h3>Total Orders</h3>
                 <p className="stat-value">128</p>
-                <p className="stat-change positive">+12% from last week</p>
+                {/* <p className="stat-change positive">+12% from last week</p> */}
               </div>
             </div>
 
@@ -24,7 +24,7 @@ const Dashboard = () => {
               <div className="stat-details">
                 <h3>Revenue</h3>
                 <p className="stat-value">₹24,500</p>
-                <p className="stat-change positive">+8% from last week</p>
+                {/* <p className="stat-change positive">+8% from last week</p> */}
               </div>
             </div>
 
@@ -33,7 +33,7 @@ const Dashboard = () => {
               <div className="stat-details">
                 <h3>Customers</h3>
                 <p className="stat-value">85</p>
-                <p className="stat-change positive">+5% from last week</p>
+                {/* <p className="stat-change positive">+5% from last week</p> */}
               </div>
             </div>
 
@@ -42,7 +42,7 @@ const Dashboard = () => {
               <div className="stat-details">
                 <h3>Deliveries</h3>
                 <p className="stat-value">42</p>
-                <p className="stat-change negative">-3% from last week</p>
+                {/* <p className="stat-change negative">-3% from last week</p> */}
               </div>
             </div>
           </div>

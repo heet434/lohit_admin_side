@@ -1,13 +1,27 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 
 const Header = ({ title }) => {
   const location = useLocation()
   const { logout } = useAuth()
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [showMobileMenu, setShowMobileMenu] = useState(true)
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) {
+        setShowMobileMenu(false)
+      }else{
+        setShowMobileMenu(true)
+      }
+    }
+
+    window.addEventListener("resize", handleResize)
+    return () => window.removeEventListener("resize", handleResize
+    )
+  }, [])
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -37,20 +51,20 @@ const Header = ({ title }) => {
             <input type="text" placeholder="Search..." className="search-input" />
             <button className="search-btn">🔍</button>
           </div>
-          <div className="date-display">{currentDate}</div>
-          <button className="notification-btn">🔔</button>
-          <button className="theme-toggle">🌙</button>
+          {!showMobileMenu && <div className="date-display">{currentDate}</div>}
+          {/* <button className="notification-btn">🔔</button> */}
+          {/* <button className="theme-toggle">🌙</button> */}
 
           {/* Mobile logout button */}
           <button
             className="logout-btn mobile-only"
             onClick={logout}
             style={{
-              display: "none",
-              "@media (max-width: 767px)": { display: "flex" },
+              display: showMobileMenu ? "flex" : "none",
             }}
           >
-            <span className="icon">🚪</span>
+            {/* <span className="icon">🚪</span> */}
+            Logout
           </button>
         </div>
       </div>

@@ -20,14 +20,14 @@ const Sidebar = () => {
   return (
     <div className="sidebar">
       <div className="user-info">
-        <div className="avatar">{currentUser.name.charAt(0)}</div>
+        <div className="avatar">LC</div>
         <div className="user-details">
           <p className="user-name">{currentUser.name}</p>
           <p className="user-email">{currentUser.email}</p>
         </div>
-        <button className="options-btn" onClick={toggleMobileMenu}>
+        {/* <button className="options-btn" onClick={toggleMobileMenu}>
           {mobileMenuOpen ? "✕" : "☰"}
-        </button>
+        </button> */}
       </div>
 
       <div className={`nav-menu ${mobileMenuOpen ? "mobile-open" : ""}`}>

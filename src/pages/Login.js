@@ -7,38 +7,41 @@ import "../styles/Login.css"
 
 const Login = () => {
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
   const [role, setRole] = useState("admin")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const { login } = useAuth()
+  const { adminLogin, deliveryLogin } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setError("")
+    setLoading(true)
 
     try {
-      setError("")
-      setLoading(true)
+      let success = false
 
-      const success = login(email, password, role)
+      if (role === "admin") {
+        success = await adminLogin(email, password)
+      } else {
+        console.log(phone)
+        success = await deliveryLogin(phone, password)
+      }
 
       if (success) {
-        if (role === "admin") {
-          navigate("/admin/dashboard")
-        } else if (role === "delivery") {
-          navigate("/delivery/dashboard")
-        }
+        navigate(role === "admin" ? "/admin/dashboard" : "/delivery/dashboard")
       } else {
         setError("Failed to sign in. Please check your credentials.")
       }
     } catch (error) {
       setError("Failed to sign in")
       console.error(error)
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   return (
@@ -60,20 +63,21 @@ const Login = () => {
             </select>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-          </div>
+          {role === "admin" ? (
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </div>
+          ) : (
+            <div className="form-group">
+              <label htmlFor="phone">Phone (10 digits)</label>
+              <input type="text" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+            </div>
+          )}
 
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
 
           <div className="form-actions">
@@ -82,18 +86,18 @@ const Login = () => {
             </button>
           </div>
 
-          <div className="form-footer">
+          {/* <div className="form-footer">
             <a href="#forgot-password">Forgot password?</a>
-          </div>
+          </div> */}
         </form>
 
-        <div className="demo-credentials">
+        {/* <div className="demo-credentials">
           <p>
             <strong>Demo Credentials:</strong>
           </p>
           <p>Admin: admin@restaurant.com / password</p>
           <p>Delivery: delivery@restaurant.com / password</p>
-        </div>
+        </div> */}
       </div>
     </div>
   )
