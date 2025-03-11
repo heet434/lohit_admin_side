@@ -4,12 +4,23 @@ import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import { useAuth } from "../contexts/AuthContext"
 
-const Header = ({ title }) => {
+const Header = (props) => {
+  const { title, searchQuery, handleSearch } = props
   const location = useLocation()
   const { logout } = useAuth()
   const [showMobileMenu, setShowMobileMenu] = useState(true)
 
   useEffect(() => {
+    // check if the window width is greater than 768px
+
+    const windowWidth = window.innerWidth
+    if (windowWidth > 768) {
+      setShowMobileMenu(false)
+    }else{
+      setShowMobileMenu(true)
+    }
+
+
     const handleResize = () => {
       if (window.innerWidth > 768) {
         setShowMobileMenu(false)
@@ -21,7 +32,7 @@ const Header = ({ title }) => {
     window.addEventListener("resize", handleResize)
     return () => window.removeEventListener("resize", handleResize
     )
-  }, [])
+  }, [window.innerWidth])
 
   const currentDate = new Date().toLocaleDateString("en-US", {
     year: "numeric",
@@ -48,7 +59,7 @@ const Header = ({ title }) => {
         <h1>{getPageTitle()}</h1>
         <div className="header-actions">
           <div className="search-container">
-            <input type="text" placeholder="Search..." className="search-input" />
+            <input type="text" placeholder="Search..." className="search-input" value={searchQuery} onChange={handleSearch} />
             <button className="search-btn">🔍</button>
           </div>
           {!showMobileMenu && <div className="date-display">{currentDate}</div>}
@@ -56,7 +67,7 @@ const Header = ({ title }) => {
           {/* <button className="theme-toggle">🌙</button> */}
 
           {/* Mobile logout button */}
-          <button
+          {showMobileMenu && (<button
             className="logout-btn mobile-only"
             onClick={logout}
             style={{
@@ -65,7 +76,7 @@ const Header = ({ title }) => {
           >
             {/* <span className="icon">🚪</span> */}
             Logout
-          </button>
+          </button>)}
         </div>
       </div>
     </header>

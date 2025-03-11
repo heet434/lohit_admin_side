@@ -2,7 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Login from "./pages/Login"
 import AdminDashboard from "./pages/admin/Dashboard"
 import AdminOrders from "./pages/admin/Orders"
-import AdminDeliveries from "./pages/admin/Deliveries"
+// import AdminDeliveries from "./pages/admin/Deliveries"
 import AdminMenu from "./pages/admin/Menu"
 import DeliveryDashboard from "./pages/delivery/Dashboard"
 import { AuthProvider } from "./contexts/AuthContext"
@@ -41,14 +41,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
+          {/* <Route
             path="/admin/deliveries"
             element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <AdminDeliveries />
               </ProtectedRoute>
             }
-          />
+          /> */}
           <Route
             path="/admin/menu"
             element={

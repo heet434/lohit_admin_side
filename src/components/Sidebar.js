@@ -49,14 +49,14 @@ const Sidebar = () => {
               <span className="icon">🛒</span>
               <span>Orders</span>
             </Link>
-            <Link
+            {/* <Link
               to="/admin/deliveries"
               className={`nav-item ${isActive("/admin/deliveries") ? "active" : ""}`}
               onClick={() => setMobileMenuOpen(false)}
             >
               <span className="icon">🚚</span>
               <span>Deliveries</span>
-            </Link>
+            </Link> */}
             <Link
               to="/admin/menu"
               className={`nav-item ${isActive("/admin/menu") ? "active" : ""}`}
