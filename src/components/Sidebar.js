@@ -65,6 +65,14 @@ const Sidebar = () => {
               <span className="icon">📋</span>
               <span>Menu</span>
             </Link>
+            <Link
+              to="/admin/register-delivery-man"
+              className={`nav-item ${isActive("/admin/register-delivery-man") ? "active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="icon">👤</span>
+              <span>Register Delivery Man</span>
+            </Link>
           </>
         )}
 

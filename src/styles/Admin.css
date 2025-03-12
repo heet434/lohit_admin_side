@@ -1624,5 +1624,106 @@
     margin-left: 5px;
     cursor: pointer;
   }
-  
-  
+
+  /* Delivery Man Registration Styles */
+.delivery-man-registration-container {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.delivery-man-registration-container h2 {
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 20px;
+}
+
+.registration-form {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.registration-form .form-group {
+  margin-bottom: 20px;
+}
+
+.registration-form label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 5px;
+}
+
+.registration-form input,
+.registration-form select,
+.registration-form textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.registration-form textarea {
+  height: 100px;
+  resize: vertical;
+}
+
+.registration-form .submit-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.registration-form .submit-btn:hover {
+  background-color: #1976d2;
+}
+
+@media (max-width: 768px) {
+  .delivery-man-registration-container {
+    padding: 15px;
+  }
+
+  .delivery-man-registration-container h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+
+  .registration-form {
+    padding: 15px;
+  }
+
+  .registration-form .form-group {
+    margin-bottom: 15px;
+  }
+
+  .registration-form label {
+    font-size: 13px;
+  }
+
+  .registration-form input,
+  .registration-form select,
+  .registration-form textarea {
+    padding: 8px;
+    font-size: 13px;
+  }
+
+  .registration-form .submit-btn {
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+.error-text{
+  color: red;
+  font-size: 14px;
+}
