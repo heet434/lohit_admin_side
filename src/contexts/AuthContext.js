@@ -47,7 +47,9 @@ export const AuthProvider = ({ children }) => {
       // console.log(response)
       if (response.data) {
         const { phone_number, token } = response.data
-        const user = { phone: phone_number, token, role: "delivery" }
+        const deliveryManId = response.data.delivery_man?.id
+        const name = response.data.delivery_man?.name
+        const user = { phone: phone_number, token, role: "delivery", deliveryManId, name }
         localStorage.setItem("user", JSON.stringify(user))
         setCurrentUser(user)
         return true
@@ -60,8 +62,34 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = () => {
-    localStorage.removeItem("user")
-    setCurrentUser(null)
+    // send logout request to server
+    const user = localStorage.getItem("user")
+    if (user) {
+      const { token, role } = JSON.parse(user)
+      if (role === "admin") {
+        axios.post("admin/logout/", {}, { headers: { Authorization: `Token ${token}` } })
+          .then(() => {
+            console.log("Logged out")
+            localStorage.removeItem("user")
+            setCurrentUser(null)
+          })
+          .catch((error) => {
+            console.error(error)
+            alert("Failed to logout")
+          })
+      } else if (role === "delivery") {
+        axios.post("deliveryman/logout/", {}, { headers: { Authorization: `Token ${token}` } })
+          .then(() => {
+            console.log("Logged out")
+            localStorage.removeItem("user")
+            setCurrentUser(null)
+          })
+          .catch((error) => {
+            console.error(error)
+            alert("Failed to logout")
+          })
+      }
+    }
   }
 
   const value = {

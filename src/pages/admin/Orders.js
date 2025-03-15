@@ -93,20 +93,45 @@ const Orders = () => {
             return b.token_number - a.token_number
           }
         })
+        // calculate total price for each order using items
+        sortedOrders.forEach((order) => {
+          order.total_price = order.items.reduce((total, item) => {
+            return total + item.quantity * item.item_price
+          }, 0)
+        })
         setOrders(sortedOrders)
         console.log("Initial orders: ", data.orders)
       } else if (data.type === "order_update") {
         setOrders((prevOrders) => {
           const existingOrder = prevOrders.find((order) => order.id === data.order.id)
+          console.log("Existing order: ", existingOrder)
           let updatedOrders;
           if (existingOrder) {
             updatedOrders = prevOrders.map((order) =>
               order.id === data.order.id ? data.order : order
             )
           } else {
+
+            // add total price to new order
+            data.order.total_price = data.order.items.reduce((total, item) => {
+              return total + item.quantity * item.item_price
+            }, 0)
+
             updatedOrders = [data.order, ...prevOrders]
+            console.log("New order: ", data.order)
+            console.log("Updated orders: ", updatedOrders)
           }
-          return updatedOrders.sort((a, b) => b.token_number - a.token_number)
+          return updatedOrders.sort((a, b) => {
+            const dateA = new Date(a.date)
+            const dateB = new Date(b.date)
+            if (dateA < dateB) {
+              return 1
+            } else if (dateA > dateB) {
+              return -1
+            } else {
+              return b.token_number - a.token_number
+            }
+          })
         })
       }      
     }
@@ -178,6 +203,7 @@ const Orders = () => {
       { headers: { Authorization: `Token ${user.token}` } }
     )
     .then(response => {
+      console.log(response.data)
       axios.put('orders/' + order.id + '/update-status/', 
         { status: "out_for_delivery" },
         { headers: { Authorization: `Token ${user.token}` } }
@@ -341,10 +367,10 @@ const Orders = () => {
                   <div className="order-items">
                     <h4>Items:</h4>
                     <ul>
-                      {order.items.map((item) => (
-                        <li key={item.id}>
+                      {order.items.map((item, index) => (
+                        <li key={index}>
                           {item.item_name} ({item.quantity}x) - ₹{item.item_price}  
-                          [{item.veg_nonveg_egg}]
+                          [{item.item_veg_nonveg_egg}]
                         </li>
                       ))}
                     </ul>
