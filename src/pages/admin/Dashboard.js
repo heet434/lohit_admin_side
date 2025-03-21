@@ -39,31 +39,37 @@ const Dashboard = () => {
   const token = user?.token
 
   useEffect(() => {
-    axios.get("admin/orders/",
-      {
-        headers: { Authorization: `Token ${token}` }
-      })
-      .then(response => {
-        // const sortedOrders = response.data.sort((a, b) => b.token_number - a.token_number);
-        // sort orders first by date and then by token number
-        const sortedOrders = response.data.sort((a, b) => {
-          const dateA = new Date(a.date)
-          const dateB = new Date(b.date)
-          if (dateA < dateB) {
-            return 1
-          } else if (dateA > dateB) {
-            return -1
-          } else {
-            return b.token_number - a.token_number
-          }
-        })
+    // axios.get("admin/orders/",
+    //   {
+    //     headers: { Authorization: `Token ${token}` }
+    //   })
+    //   .then(response => {
+    //     // const sortedOrders = response.data.sort((a, b) => b.token_number - a.token_number);
+    //     // sort orders first by date and then by token number
+    //     const sortedOrders = response.data.sort((a, b) => {
+    //       const dateA = new Date(a.date)
+    //       const dateB = new Date(b.date)
+    //       if (dateA < dateB) {
+    //         return 1
+    //       } else if (dateA > dateB) {
+    //         return -1
+    //       } else {
+    //         return b.token_number - a.token_number
+    //       }
+    //     })
         
-        console.log("Orders: ", sortedOrders)
-        setOrders(sortedOrders)
-      })
-      .catch(error => {
-        console.log("Error fetching orders: ", error)
-      })
+    //     // calculate total for each order using each item in items and add it as a field
+
+    //     sortedOrders.forEach(order => {
+    //       const total = order.items.reduce((acc, item) => acc + parseFloat(item.item_price) * parseInt(item.quantity), 0)
+    //       order.total = total
+    //     })
+        
+    //     setOrders(sortedOrders)
+    //   })
+    //   .catch(error => {
+    //     console.log("Error fetching orders: ", error)
+    //   })
       axios.get("admin/stats/",
         {
           headers: { Authorization: `Token ${token}` }
@@ -76,6 +82,75 @@ const Dashboard = () => {
           console.log("Error fetching stats: ", error)
         })
   }, [token])
+
+// websocket connection for orders
+  useEffect(() => {
+    const ws = new WebSocket("ws://localhost:8000/ws/orders/admin/")
+    ws.onopen = () => {
+      console.log("Connected to orders websocket")
+    }
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+
+      if (data.type === "initial_orders") {
+        // sort orders by token number
+        const sortedOrders = data.orders?.sort((a, b) => {
+          const dateA = new Date(a.date)
+          const dateB = new Date(b.date)
+          if (dateA < dateB) {
+            return 1
+          } else if (dateA > dateB) {
+            return -1
+          } else {
+            return b.token_number - a.token_number
+          }
+        })
+        // calculate total price for each order using items
+        sortedOrders.forEach((order) => {
+          order.total_price = order.items.reduce((total, item) => {
+            return total + item.quantity * item.item_price
+          }, 0)
+        })
+        setOrders(sortedOrders)
+        console.log("Initial orders: ", data.orders)
+      } else if (data.type === "order_update") {
+        setOrders((prevOrders) => {
+          const existingOrder = prevOrders.find((order) => order.id === data.order.id)
+          console.log("Existing order: ", existingOrder)
+          let updatedOrders;
+          if (existingOrder) {
+            updatedOrders = prevOrders.map((order) =>
+              order.id === data.order.id ? data.order : order
+            )
+          } else {
+
+            // add total price to new order
+            data.order.total_price = data.order.items.reduce((total, item) => {
+              return total + item.quantity * item.item_price
+            }, 0)
+
+            updatedOrders = [data.order, ...prevOrders]
+            console.log("New order: ", data.order)
+            console.log("Updated orders: ", updatedOrders)
+          }
+          return updatedOrders.sort((a, b) => {
+            const dateA = new Date(a.date)
+            const dateB = new Date(b.date)
+            if (dateA < dateB) {
+              return 1
+            } else if (dateA > dateB) {
+              return -1
+            } else {
+              return b.token_number - a.token_number
+            }
+          })
+        })
+      }      
+    }
+    return () => {
+      ws.close()
+    }
+  }, [])
 
   return (
     <div className="app-container">

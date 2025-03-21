@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }) => {
     if (user) {
       const { token, role } = JSON.parse(user)
       if (role === "admin") {
-        axios.post("admin/logout/", {}, { headers: { Authorization: `Token ${token}` } })
+        axios.post("logout/", {}, { headers: { Authorization: `Token ${token}` } })
           .then(() => {
             console.log("Logged out")
             localStorage.removeItem("user")
