@@ -273,7 +273,7 @@ const Orders = () => {
             return {
               ...order,
               items: updatedItems,
-              status: allItemsReady ? "completed" : order.status
+              status: allItemsReady ? "ready" : order.status
             };
           }
           return order;
