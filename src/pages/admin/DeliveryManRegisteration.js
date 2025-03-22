@@ -81,7 +81,6 @@ const DeliveryManRegistration = () => {
       password: formData.password,
       password2: formData.confirm_password,
     }).then((res) => {
-      console.log(res)
       setFormData({
         name: "",
         phone_number: "",

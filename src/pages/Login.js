@@ -27,7 +27,6 @@ const Login = () => {
       if (role === "admin") {
         success = await adminLogin(email, password)
       } else {
-        console.log(phone)
         success = await deliveryLogin(phone, password)
       }
 

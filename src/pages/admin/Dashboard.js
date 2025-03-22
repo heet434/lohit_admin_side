@@ -32,50 +32,17 @@ const Dashboard = () => {
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value)
-    console.log("Search query: ", event.target.value)
   }
 
   const user = JSON.parse(localStorage.getItem("user"))
   const token = user?.token
 
   useEffect(() => {
-    // axios.get("admin/orders/",
-    //   {
-    //     headers: { Authorization: `Token ${token}` }
-    //   })
-    //   .then(response => {
-    //     // const sortedOrders = response.data.sort((a, b) => b.token_number - a.token_number);
-    //     // sort orders first by date and then by token number
-    //     const sortedOrders = response.data.sort((a, b) => {
-    //       const dateA = new Date(a.date)
-    //       const dateB = new Date(b.date)
-    //       if (dateA < dateB) {
-    //         return 1
-    //       } else if (dateA > dateB) {
-    //         return -1
-    //       } else {
-    //         return b.token_number - a.token_number
-    //       }
-    //     })
-        
-    //     // calculate total for each order using each item in items and add it as a field
-
-    //     sortedOrders.forEach(order => {
-    //       const total = order.items.reduce((acc, item) => acc + parseFloat(item.item_price) * parseInt(item.quantity), 0)
-    //       order.total = total
-    //     })
-        
-    //     setOrders(sortedOrders)
-    //   })
-    //   .catch(error => {
-    //     console.log("Error fetching orders: ", error)
-    //   })
       axios.get("admin/stats/",
         {
           headers: { Authorization: `Token ${token}` }
         })
         .then(response => {
-          //console.log("Stats: ", response.data)
           setStats(response.data)
         })
         .catch(error => {
@@ -112,11 +79,9 @@ const Dashboard = () => {
           }, 0)
         })
         setOrders(sortedOrders)
-        console.log("Initial orders: ", data.orders)
       } else if (data.type === "order_update") {
         setOrders((prevOrders) => {
           const existingOrder = prevOrders.find((order) => order.id === data.order.id)
-          console.log("Existing order: ", existingOrder)
           let updatedOrders;
           if (existingOrder) {
             updatedOrders = prevOrders.map((order) =>
@@ -130,8 +95,6 @@ const Dashboard = () => {
             }, 0)
 
             updatedOrders = [data.order, ...prevOrders]
-            console.log("New order: ", data.order)
-            console.log("Updated orders: ", updatedOrders)
           }
           return updatedOrders.sort((a, b) => {
             const dateA = new Date(a.date)

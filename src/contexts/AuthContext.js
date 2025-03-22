@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post("login/", { email, password })
       if (response.data) {
-        console.log(response.data)
         const email = response.data.user.email
         const token = response.data.token
         const user = { email, token, role: "admin" }

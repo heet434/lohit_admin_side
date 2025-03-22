@@ -24,7 +24,6 @@ const Menu = () => {
     axios.get("categories/")
       .then((response) => {
         setFoodCategories(response.data)
-        console.log("Categories: ", response.data)
       })
       .catch((error) => {
         console.error("Error fetching categories:", error)

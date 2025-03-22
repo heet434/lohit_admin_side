@@ -26,6 +26,7 @@ const formatTime = (time) => {
 
 const Orders = () => {
   const [activeTab, setActiveTab] = useState("all")
+  const [activeCounter, setActiveCounter] = useState("all")
   const [orders, setOrders] = useState([])
   const [deliveryMen, setDeliveryMen] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -44,18 +45,6 @@ const Orders = () => {
 
     const user = JSON.parse(storedUser)
     if (!user.token) return
-
-    // axios.get("admin/orders/", {
-    //     headers: { Authorization: `Token ${user.token}` },
-    //   })
-    //   .then((response) => {
-    //     const sortedOrders = response.data.sort((a, b) => b.token_number - a.token_number)
-    //     console.log(sortedOrders)
-    //     setOrders(sortedOrders)
-    //   })
-    //   .catch((error) => {
-    //     console.error("Error fetching orders:", error)
-    //   })
 
     axios.get("admin/deliverymen/",
         { headers: { Authorization: `Token ${user.token}` } }
@@ -80,6 +69,8 @@ const Orders = () => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
 
+      console.log("Orders data: ", data)
+
       if (data.type === "initial_orders") {
         // sort orders by token number
         const sortedOrders = data.orders?.sort((a, b) => {
@@ -100,11 +91,9 @@ const Orders = () => {
           }, 0)
         })
         setOrders(sortedOrders)
-        console.log("Initial orders: ", data.orders)
       } else if (data.type === "order_update") {
         setOrders((prevOrders) => {
           const existingOrder = prevOrders.find((order) => order.id === data.order.id)
-          console.log("Existing order: ", existingOrder)
           let updatedOrders;
           if (existingOrder) {
             updatedOrders = prevOrders.map((order) => {
@@ -119,7 +108,6 @@ const Orders = () => {
                     )
                     return {
                       ...newItem,
-                      is_ready: existingItem ? existingItem.is_ready : false
                     }
                   })
                 }
@@ -156,36 +144,8 @@ const Orders = () => {
     }
   }, [])
 
-  // const handleAssignDelivery = (order, delivery_man_id) => {
-  //   console.log(delivery_man_id)
-  //   axios.patch(
-  //   '/orders/' + order.id + '/assign-deliveryman/',
-  //   { delivery_man : delivery_man_id },
-  //   { headers: { Authorization: `Token ${user.token}` } }
-  //   )
-  //   .then(response => {
-  //     console.log(
-  //       "Delivery person assigned to order: ",
-  //       response.data
-  //     )
-      
-  //     const updatedOrders = orders.map((o) => {
-  //       if (o.id === order.id) {
-  //         return { ...o, delivery_man_details: response.data.delivery_man_details }
-  //       }
-  //       return o
-  //     })
-  //     setOrders(updatedOrders)
-  //     console.log("Updated orders: ", updatedOrders)
-  //   }).catch(error => {
-  //     console.error("Error assigning delivery person: ", error)
-  //   })
-  // }
-
   const handleSelectDelivery = (order, deliveryManId) => {
-
     // find delivery man with deliveryManId
-    // console.log(deliveryMen)
     const delivery = deliveryMen.find((d) => d.id === parseInt(deliveryManId))
     console.log(delivery)
     if (!delivery) {
@@ -226,12 +186,12 @@ const Orders = () => {
       ).then(response => {
         console.log("Order status updated: ", response.data)
         console.log("Delivery person assigned to order: ", response.data)
-      // update order status
+        // update order status
         const updatedOrders = orders.map((o) => {
-        if (o.id === order.id) {
-          return { ...o, status: "out_for_delivery" }
-        }
-        return o
+          if (o.id === order.id) {
+            return { ...o, status: "out_for_delivery" }
+          }
+          return o
         })
         setOrders(updatedOrders)
         alert("Delivery person " + order.delivery_man_details?.name + " assigned to order " + order.id)
@@ -288,65 +248,66 @@ const Orders = () => {
   }
 
   // Handle toggling item ready status
-  const handleToggleItemReady = (orderItemId) => {
-      axios.patch('order-items/' + orderItemId + '/update-status/',
-        {
-          status: "ready"
-        },
-        { headers: { Authorization: `Token ${user.token}` } }
-      )
-    
-    // You might want to send this update to the backend
-    // axios.put(`orders/${orderId}/items/${itemIndex}/update-status`, 
-    //   { is_ready: !orders.find(o => o.id === orderId).items[itemIndex].is_ready },
-    //   { headers: { Authorization: `Token ${user.token}` } }
-    // )
-    // .then(response => {
-    //   console.log("Item status updated:", response.data);
-    // })
-    // .catch(error => {
-    //   console.error("Error updating item status:", error);
-    // });
+  const handleToggleItemReady = (orderItemId, orderId) => {
+    axios.patch('order-items/' + orderItemId + '/update-status/',
+      {
+        status: "ready"
+      },
+      { headers: { Authorization: `Token ${user.token}` } }
+    ).then(
+      response => {
+        console.log("Item ready status updated: ", response.data)
+        const updatedOrders = orders.map((order) => {
+          if (order.id === orderId) {
+            const updatedItems = order.items.map((item) => {
+              if (item.id === orderItemId) {
+                return { ...item, status: "ready" }
+              }
+              return item
+            });
+            
+            // Check if all items are ready after this update
+            const allItemsReady = updatedItems.every(item => item.status === "ready");
+            
+            // If all items are ready, update order status to "ready"
+            return {
+              ...order,
+              items: updatedItems,
+              status: allItemsReady ? "completed" : order.status
+            };
+          }
+          return order;
+        });
+        
+        setOrders(updatedOrders);
+      }
+    ).catch(error => {
+      console.error("Error updating item ready status: ", error)
+    })
   };
 
   // Check if all items are ready
   const areAllItemsReady = (order) => {
-    return order.items.every(item => item.is_ready);
+    if (order.items.every(item => item.status === "ready")) {
+      console.log("All items are ready")
+    }
+    return order.items.every(item => item.status === "ready");
   };
 
-  // Mark all items ready at once
-  const handleMarkAllItemsReady = (orderId) => {
-    setOrders(prevOrders => 
-      prevOrders.map(order => {
-        if (order.id === orderId) {
-          const updatedItems = order.items.map(item => ({
-            ...item,
-            is_ready: true
-          }));
-          
-          return { ...order, items: updatedItems };
-        }
-        return order;
-      })
-    );
-  };
-
-  // const handleCancel = (order) => {
-  //   axios.put("orders/" + order.id + "/cancel/",
-  //     {},
-  //     { headers: { Authorization: `Token ${user.token}` } }
-  //   )
-  //   .then(response => {
-  //     console.log("Order cancelled: ", response.data)
-  //     const updatedOrders = orders.filter((o) => o.id !== order.id)
-  //     setOrders(updatedOrders)
-  //   })
-  //   .catch(error => {
-  //     console.error("Error cancelling order: ", error)
-  //   })
-  // }
-
-
+  const handleCancel = (order) => {
+    axios.put("orders/" + order.id + "/cancel/",
+      {},
+      { headers: { Authorization: `Token ${user.token}` } }
+    )
+    .then(response => {
+      console.log("Order cancelled: ", response.data)
+      const updatedOrders = orders.filter((o) => o.id !== order.id)
+      setOrders(updatedOrders)
+    })
+    .catch(error => {
+      console.error("Error cancelling order: ", error)
+    })
+  }
 
   const displayNextStatus = (order) => {
     if(!order) return "Pending"
@@ -367,21 +328,52 @@ const Orders = () => {
     return currentStatus
   }
 
-  // Filter orders based on active tab and search query
-  const filteredOrders = orders.filter(
-    // (order) => activeTab === "all" || order.mode_of_eating === activeTab
-    (order) => {
-      const mode = order.mode_of_eating
-      const status = order.status
-      const search = searchQuery.toLowerCase()
-      return (
-        (activeTab === "all" || mode === activeTab) &&
-        (status.toLowerCase().includes(search) ||
-          mode.toLowerCase().includes(search) ||
-          order.phone_number?.includes(search))
-      )
+  const filteredOrders = orders.filter((order) => {
+    const mode = order.mode_of_eating;
+    const status = order.status;
+    const search = searchQuery.toLowerCase();
+    
+    // First check if the order matches the active tab and search criteria
+    const matchesTabAndSearch = (
+      (activeTab === "all" || mode === activeTab) &&
+      (status.toLowerCase().includes(search) ||
+        mode.toLowerCase().includes(search) ||
+        order.phone_number?.includes(search))
+    );
+    
+    if (!matchesTabAndSearch) return false;
+    
+    // Then check if any items match the counter filter
+    if (activeCounter === "all") return true;
+    
+    const activeCounterNo = parseInt(activeCounter.split(" ")[1]);
+    if (isNaN(activeCounterNo)) return true;
+    
+    // Check if at least one item matches the counter filter
+    return order.items.some(item => {
+      const counterNo = parseInt(item.counter);
+      if (isNaN(counterNo)) return false;
+      return activeCounterNo === counterNo;
+    });
+  }).map(order => {
+    // For display, create a new object with filtered items
+    if (activeCounter === "all") {
+      return order; // Return the original order if no counter filtering
     }
-  )
+    
+    const activeCounterNo = parseInt(activeCounter.split(" ")[1]);
+    if (isNaN(activeCounterNo)) return order;
+    
+    // Create a copy of the order with only the items that match the counter
+    return {
+      ...order,
+      items: order.items.filter(item => {
+        const counterNo = parseInt(item.counter);
+        if (isNaN(counterNo)) return false;
+        return activeCounterNo === counterNo;
+      })
+    };
+  });
 
   return (
     <div className="app-container">
@@ -395,6 +387,17 @@ const Orders = () => {
                 key={type}
                 className={`tab-btn ${activeTab === type ? "active" : ""}`}
                 onClick={() => setActiveTab(type)}
+              >
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </button>
+            ))}
+          </div>
+          <div className="order-tabs">
+            {["all", "counter 1", "counter 2", "counter 3", "counter 4"].map((type) => (
+              <button
+                key={type}
+                className={`tab-btn ${activeCounter === type ? "active" : ""}`}
+                onClick={() => setActiveCounter(type)}
               >
                 {type.charAt(0).toUpperCase() + type.slice(1)}
               </button>
@@ -430,38 +433,30 @@ const Orders = () => {
                       {order.items.map((item, index) => {
                         const isEligibleForReadyStatus = 
                           ["dine-in", "take-away"].includes(order.mode_of_eating.toLowerCase()) && 
-                          ["confirmed", "ready"].includes(order.status.toLowerCase());
+                          ["confirmed"].includes(order.status.toLowerCase()) && 
+                          !areAllItemsReady(order);
                           
                         return (
                           <li key={index} className="item-entry">
                             <div className="item-details">
                               {item.item_name} ({item.quantity}x) - ₹{item.item_price} [{item.item_veg_nonveg_egg}]
+                              {item.status === "ready" && <span className="ready-status"> ✓</span>}
                             </div>
-                            {isEligibleForReadyStatus && (
+                            {isEligibleForReadyStatus && item.status !== "ready" && (
                               <button 
-                                className={`item-ready-btn ${item.is_ready ? 'ready' : ''}`}
-                                onClick={() => handleToggleItemReady(order.id, index)}
+                                className="item-ready-btn mark-ready"
+                                onClick={() => handleToggleItemReady(item.id, order.id)}
                               >
-                                {item.is_ready ? '✓ Ready' : 'Mark Ready'}
+                                Mark Ready
                               </button>
                             )}
                           </li>
                         );
                       })}
                     </ul>
-                    {["dine-in", "take-away"].includes(order.mode_of_eating.toLowerCase()) && 
-                     ["confirmed", "ready"].includes(order.status.toLowerCase()) && (
-                      <button 
-                        className="mark-all-ready-btn"
-                        onClick={() => handleMarkAllItemsReady(order.id)}
-                      >
-                        Mark All Items Ready
-                      </button>
-                    )}
                   </div>
                   <div className="order-actions">
                     { (order.status).toLowerCase() === "confirmed" && (order.mode_of_eating).toLowerCase() === "delivery" && (
-                      // display a dropdown to select delivery
                       <select className="delivery-person-select" onChange={(e) => handleSelectDelivery(order, e.target.value)}>
                         <option value="">Select Delivery Person</option>
                         {deliveryMen.map((person) => (
@@ -471,9 +466,6 @@ const Orders = () => {
                         ))}
                       </select>
                     )}
-                    {/* {(order.status).toLowerCase() === "confirmed" && (order.mode_of_eating).toLowerCase() === "delivery" && (
-                      <button className="action-btn confirm" onClick={() => handleAssignDelivery(order)}>Assign Delivery</button>
-                    )} */}
 
                     {(order.status).toLowerCase() !== "delivered" && (order.status).toLowerCase() !== "completed" && (
                       ((order.status).toLowerCase() === "confirmed" && (order.mode_of_eating).toLowerCase() === "delivery") ?
@@ -493,10 +485,9 @@ const Orders = () => {
                       )
                     }
                     {(order.status).toLowerCase() === "pending" && (
-                    <button className="action-btn cancel">Cancel</button>
+                    <button className="action-btn cancel" onClick={() => handleCancel(order)}>Cancel</button>
                     )}
                     {((order.status).toLowerCase() === "delivered" || (order.status).toLowerCase() === "completed") && (
-                      // add an unclickable button that shows the status
                       <button className="action-btn completed" disabled>{displayNextStatus(order)}</button>
                     )}
                   </div>
