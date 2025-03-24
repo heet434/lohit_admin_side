@@ -286,6 +286,45 @@ const Orders = () => {
     })
   };
 
+  const handleToggleItemCompleted = (orderItemId, orderId) => {
+    axios.patch('order-items/' + orderItemId + '/update-status/',
+      {
+        status: "completed"
+      },
+      { headers: { Authorization: `Token ${user.token}` } }
+    ).then(
+      response => {
+        console.log("Item completed status updated: ", response.data)
+        const updatedOrders = orders.map((order) => {
+          if (order.id === orderId) {
+            const updatedItems = order.items.map((item) => {
+              if (item.id === orderItemId) {
+                return { ...item, status: "completed" }
+              }
+              return item
+            });
+            
+            // Check if all items are ready after this update
+            const allItemsCompleted = updatedItems.every(item => item.status === "completed");
+            
+            // If all items are ready, update order status to "ready"
+            return {
+              ...order,
+              items: updatedItems,
+              status: allItemsCompleted ? "completed" : order.status
+            };
+          }
+          return order;
+        });
+        
+        setOrders(updatedOrders);
+      }
+    ).catch(error => {
+      console.error("Error updating item completed status: ", error)
+    })
+  };
+
+
   // Check if all items are ready
   const areAllItemsReady = (order) => {
     if (order.items.every(item => item.status === "ready")) {
@@ -316,7 +355,7 @@ const Orders = () => {
     if (mode === "dine-in" || mode === "take-away") {
       if (currentStatus === "pending") return "Confirm"
       if (currentStatus === "confirmed") return "Mark Ready"
-      if (currentStatus === "ready") return "Mark Completed"
+      if (currentStatus === "ready") return "All items not complete"
       if (currentStatus === "completed") return "Completed"
       
     }else if (mode === "delivery") {
@@ -440,9 +479,9 @@ const Orders = () => {
                           <li key={index} className="item-entry">
                             <div className="item-details">
                               {item.item_name} ({item.quantity}x) - ₹{item.item_price} [{item.item_veg_nonveg_egg}]
-                              {item.status === "ready" && <span className="ready-status"> ✓</span>}
+                              {item.status === "completed" && <span className="ready-status"> ✓</span>}
                             </div>
-                            {isEligibleForReadyStatus && item.status !== "ready" && (
+                            {isEligibleForReadyStatus && item.status !== "ready" && item.status !== "completed" && (
                               <button 
                                 className="item-ready-btn mark-ready"
                                 onClick={() => handleToggleItemReady(item.id, order.id)}
@@ -450,6 +489,16 @@ const Orders = () => {
                                 Mark Ready
                               </button>
                             )}
+                            {isEligibleForReadyStatus &&
+                              item.status === "ready" && (
+                                <button 
+                                  className="item-complete-btn mark-completed"
+                                  onClick={() => handleToggleItemCompleted(item.id, order.id)}
+                                >
+                                  Mark Completed
+                                </button>
+                              )
+                            }
                           </li>
                         );
                       })}
@@ -470,18 +519,19 @@ const Orders = () => {
                     {(order.status).toLowerCase() !== "delivered" && (order.status).toLowerCase() !== "completed" && (
                       ((order.status).toLowerCase() === "confirmed" && (order.mode_of_eating).toLowerCase() === "delivery") ?
                         <button className="action-btn confirm" onClick={() => handleAssignDelivery(order)}>Assign Delivery</button> :
-                        <button 
-                          className="action-btn confirm" 
-                          onClick={() => handleConfirm(order)}
-                          disabled={["dine-in", "take-away"].includes(order.mode_of_eating.toLowerCase()) && 
-                                   order.status.toLowerCase() === "confirmed" && 
-                                   !areAllItemsReady(order)}
-                        >
-                          {displayNextStatus(order)}
-                          {["dine-in", "take-away"].includes(order.mode_of_eating.toLowerCase()) && 
-                           order.status.toLowerCase() === "confirmed" && 
-                           !areAllItemsReady(order) && " (Items not ready)"}
-                        </button>
+                          (order.status?.toLowerCase() === "pending")? <button 
+                            className="action-btn confirm" 
+                            onClick={() => handleConfirm(order)}
+                            disabled={["dine-in", "take-away"].includes(order.mode_of_eating.toLowerCase()) && 
+                                    order.status.toLowerCase() === "confirmed" && 
+                                    !areAllItemsReady(order)}
+                          >
+                            {displayNextStatus(order)}
+                            {["dine-in", "take-away"].includes(order.mode_of_eating.toLowerCase()) && 
+                            order.status.toLowerCase() === "confirmed" && 
+                            !areAllItemsReady(order) && " (Items not ready)"}
+                          </button> : 
+                          null
                       )
                     }
                     {(order.status).toLowerCase() === "pending" && (

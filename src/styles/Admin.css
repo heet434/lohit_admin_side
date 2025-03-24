@@ -1813,3 +1813,17 @@
     transform: scale(1);
   }
 }
+
+.item-complete-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  background-color: #e8f5e9;
+  color: #4caf50;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.85rem;
+  margin-left: 10px;
+  min-width: 80px;
+  text-align: center;
+}
