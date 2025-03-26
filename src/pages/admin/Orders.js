@@ -560,7 +560,8 @@ const Orders = () => {
                     </ul>
                   </div>
                   <div className="order-actions">
-                    { (order.status).toLowerCase() === "confirmed" && (order.mode_of_eating).toLowerCase() === "delivery" && (
+                    { activeCounter === 'all' &&
+                      (order.status).toLowerCase() === "confirmed" && (order.mode_of_eating).toLowerCase() === "delivery" && (
                       <select className="delivery-person-select" onChange={(e) => handleSelectDelivery(order, e.target.value)}>
                         <option value="">Select Delivery Person</option>
                         {deliveryMen.map((person) => (
@@ -571,7 +572,8 @@ const Orders = () => {
                       </select>
                     )}
 
-                    {(order.status).toLowerCase() !== "delivered" && (order.status).toLowerCase() !== "completed" && (
+                    { activeCounter === 'all' &&
+                      (order.status).toLowerCase() !== "delivered" && (order.status).toLowerCase() !== "completed" && (
                       ((order.status).toLowerCase() === "confirmed" && (order.mode_of_eating).toLowerCase() === "delivery") ?
                         <button className="action-btn confirm" onClick={() => handleAssignDelivery(order)}>Assign Delivery</button> :
                           (order.status?.toLowerCase() === "pending")? <button 
@@ -589,8 +591,9 @@ const Orders = () => {
                           null
                       )
                     }
-                    {(order.status).toLowerCase() === "pending" && (
-                    <button className="action-btn cancel" onClick={() => handleCancel(order)}>Cancel</button>
+                    { activeCounter === 'all' &&
+                      (order.status).toLowerCase() === "pending" && (
+                      <button className="action-btn cancel" onClick={() => handleCancel(order)}>Cancel</button>
                     )}
                     {((order.status).toLowerCase() === "delivered" || (order.status).toLowerCase() === "completed") && (
                       <button className="action-btn completed" disabled>{displayNextStatus(order)}</button>
