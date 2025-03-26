@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
+import CancellationModal from "../../components/CancellationModal"
 import "../../styles/Admin.css"
 
 const formatTime = (time) => {
@@ -30,6 +31,9 @@ const Orders = () => {
   const [orders, setOrders] = useState([])
   const [deliveryMen, setDeliveryMen] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
+
+  const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false)
+  const [orderToCancel, setOrderToCancel] = useState(null)
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value)
@@ -333,18 +337,57 @@ const Orders = () => {
     return order.items.every(item => item.status === "ready");
   };
 
+  // const handleCancel = (order) => {
+  //   axios.put("orders/" + order.id + "/cancel/",
+  //     {},
+  //     { headers: { Authorization: `Token ${user.token}` } }
+  //   )
+  //   .then(response => {
+  //     console.log("Order cancelled: ", response.data)
+  //     const updatedOrders = orders.filter((o) => o.id !== order.id)
+  //     setOrders(updatedOrders)
+  //   })
+  //   .catch(error => {
+  //     console.error("Error cancelling order: ", error)
+  //   })
+  // }
+
   const handleCancel = (order) => {
-    axios.put("orders/" + order.id + "/cancel/",
-      {},
+    // Open cancellation modal instead of directly cancelling
+    console.log("Cancelling order: ", order)
+    setOrderToCancel(order)
+    setIsCancellationModalOpen(true)
+  }
+
+  const handleConfirmCancellation = (cancellationDetails) => {
+    // Send cancellation request to backend
+    console.log("Cancelling order with details: ", cancellationDetails)
+    axios.put(`orders/${cancellationDetails.orderId}/cancel/`, 
+      {
+        unavailable_items: cancellationDetails.unavailableItems,
+        info: cancellationDetails.cancellationReason
+      },
       { headers: { Authorization: `Token ${user.token}` } }
     )
     .then(response => {
       console.log("Order cancelled: ", response.data)
-      const updatedOrders = orders.filter((o) => o.id !== order.id)
+      // Reset cancellation modal state
+      setOrderToCancel(null)
+      setIsCancellationModalOpen(false)
+
+      // update order status
+      const updatedOrders = orders.map((o) => {
+        if (o.id === cancellationDetails.orderId) {
+          return { ...o, status: "cancelled" }
+        }
+        return o
+      })
       setOrders(updatedOrders)
+
     })
     .catch(error => {
       console.error("Error cancelling order: ", error)
+      alert("Failed to cancel order. Please try again.")
     })
   }
 
@@ -418,6 +461,14 @@ const Orders = () => {
     <div className="app-container">
       <Sidebar />
       <div className="main-content">
+        {isCancellationModalOpen && orderToCancel && (
+            <CancellationModal
+              isOpen={isCancellationModalOpen}
+              onClose={() => setIsCancellationModalOpen(false)}
+              order={orderToCancel}
+              onCancel={handleConfirmCancellation}
+            />
+        )}
         <Header title="Orders" searchQuery={searchQuery} handleSearch={handleSearch} />
         <div className="orders-container">
           <div className="order-tabs">
@@ -474,7 +525,11 @@ const Orders = () => {
                           ["dine-in", "take-away"].includes(order.mode_of_eating.toLowerCase()) && 
                           ["confirmed"].includes(order.status.toLowerCase()) && 
                           !areAllItemsReady(order);
-                          
+                        const isEligibleForCompletedStatus =
+                          ["dine-in", "take-away"].includes(order.mode_of_eating.toLowerCase()) && 
+                          ["confirmed"].includes(order.status.toLowerCase()) && 
+                          areAllItemsReady(order);
+
                         return (
                           <li key={index} className="item-entry">
                             <div className="item-details">
@@ -489,7 +544,7 @@ const Orders = () => {
                                 Mark Ready
                               </button>
                             )}
-                            {isEligibleForReadyStatus &&
+                            {
                               item.status === "ready" && (
                                 <button 
                                   className="item-complete-btn mark-completed"
@@ -539,6 +594,10 @@ const Orders = () => {
                     )}
                     {((order.status).toLowerCase() === "delivered" || (order.status).toLowerCase() === "completed") && (
                       <button className="action-btn completed" disabled>{displayNextStatus(order)}</button>
+                    )}
+                    { // cancelled orders
+                      (order.status).toLowerCase() === "cancelled" && (
+                      <button className="action-btn cancelled" disabled>Cancelled</button>
                     )}
                   </div>
                 </div>
