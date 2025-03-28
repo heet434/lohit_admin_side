@@ -1827,3 +1827,80 @@
   min-width: 80px;
   text-align: center;
 }
+
+/* Timeframes Section Styles */
+.timeframes-section {
+  margin-top: 20px;
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.timeframes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.timeframes-header h4 {
+  margin: 0;
+  color: #333;
+}
+
+.add-timeframe-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.add-timeframe-btn:hover {
+  background-color: #45a049;
+}
+
+.timeframe-input {
+  margin-bottom: 10px;
+}
+
+.timeframe-inputs {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.timeframe-inputs input[type="time"] {
+  flex-grow: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.remove-timeframe-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: #ff4444;
+  padding: 5px;
+  transition: color 0.3s ease;
+}
+
+.remove-timeframe-btn:hover {
+  color: #ff0000;
+}
+
+/* Add an optional visual indicator in the menu card for timeframes */
+.menu-details .menu-timeframes {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.menu-details .menu-timeframes strong {
+  color: #333;
+}

@@ -50,6 +50,7 @@ const Menu = () => {
     veg_nonveg_egg: "veg",
     is_available: true,
     image: "https://placehold.co/300",
+    timeframes: [],
   })
 
   const handleInputChange = (e) => {
@@ -110,7 +111,28 @@ const Menu = () => {
       veg_nonveg_egg: "veg",
       is_available: true,
       image: "https://placehold.co/300",
+      timeframes: [],
     })
+  }
+
+  const handleAddTimeframe = () => setNewItem(prev => ({ ...prev, timeframes: [...prev.timeframes, { start: "", end: "" }] }))
+  const handleEditAddTimeframe = () => setCurrentItem(prev => ({ ...prev, timeframes: [...prev.timeframes, { start: "", end: "" }] }))
+
+  const handleTimeframeChange = (index, field, value, isEditing) => {
+    const updateFunction = isEditing ? setCurrentItem : setNewItem;
+    updateFunction(prev => {
+      const updatedTimeframes = [...prev.timeframes];
+      updatedTimeframes[index][field] = value;
+      return { ...prev, timeframes: updatedTimeframes };
+    })
+  }
+
+  const handleRemoveTimeframe = (index, isEditing) => {
+    const updateFunction = isEditing ? setCurrentItem : setNewItem;
+    updateFunction(prev => ({
+      ...prev,
+      timeframes: prev.timeframes.filter((_, i) => i !== index)
+    }))
   }
 
   const handleEditItem = (item) => {
@@ -282,6 +304,45 @@ const Menu = () => {
                     <label htmlFor="is_available">Available</label>
                   </div>
 
+                  <div className="timeframes-section">
+                    <div className="timeframes-header">
+                      <h4>Availability Timeframes</h4>
+                      <button 
+                        type="button" 
+                        className="add-timeframe-btn" 
+                        onClick={handleAddTimeframe}
+                      >
+                        + Add Timeframe
+                      </button>
+                    </div>
+
+                    {newItem.timeframes.map((timeframe, index) => (
+                      <div key={index} className="timeframe-input">
+                        <div className="timeframe-inputs">
+                          <input 
+                            type="time" 
+                            placeholder="Start Time" 
+                            value={timeframe.start}
+                            onChange={(e) => handleTimeframeChange(index, 'start', e.target.value, false)}
+                          />
+                          <input 
+                            type="time" 
+                            placeholder="End Time" 
+                            value={timeframe.end}
+                            onChange={(e) => handleTimeframeChange(index, 'end', e.target.value, false)}
+                          />
+                          <button 
+                            type="button" 
+                            className="remove-timeframe-btn"
+                            onClick={() => handleRemoveTimeframe(index, false)}
+                          >
+                            ✖️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="form-actions">
                     <button type="submit" className="save-btn">
                       Save Item
@@ -401,6 +462,45 @@ const Menu = () => {
                     <label htmlFor="edit-available">Available</label>
                   </div>
 
+                  <div className="timeframes-section">
+                    <div className="timeframes-header">
+                      <h4>Availability Timeframes</h4>
+                      <button 
+                        type="button" 
+                        className="add-timeframe-btn" 
+                        onClick={handleEditAddTimeframe}
+                      >
+                        + Add Timeframe
+                      </button>
+                    </div>
+
+                    {currentItem.timeframes.map((timeframe, index) => (
+                      <div key={index} className="timeframe-input">
+                        <div className="timeframe-inputs">
+                          <input 
+                            type="time" 
+                            placeholder="Start Time" 
+                            value={timeframe.start}
+                            onChange={(e) => handleTimeframeChange(index, 'start', e.target.value, true)}
+                          />
+                          <input 
+                            type="time" 
+                            placeholder="End Time" 
+                            value={timeframe.end}
+                            onChange={(e) => handleTimeframeChange(index, 'end', e.target.value, true)}
+                          />
+                          <button 
+                            type="button" 
+                            className="remove-timeframe-btn"
+                            onClick={() => handleRemoveTimeframe(index, true)}
+                          >
+                            ✖️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="form-actions">
                     <button type="submit" className="save-btn">
                       Update Item
@@ -439,6 +539,11 @@ const Menu = () => {
                     </p>
                     <p>
                       <strong>Available:</strong> {item.is_available ? "Yes" : "No"}
+                    </p>
+                    <p>
+                      <strong>Timeframes:</strong> {item.timeframes.map((timeframe, index) => (
+                        <span key={index}>[{timeframe.start} - {timeframe.end}] </span>
+                      ))}
                     </p>
                   </div>
                   <div className="menu-actions">
