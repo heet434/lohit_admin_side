@@ -12,7 +12,6 @@ const Menu = () => {
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value)
-    // console.log("Search query: ", event.target.value)
   }
 
   const [menuItems, setMenuItems] = useState([])
@@ -47,7 +46,7 @@ const Menu = () => {
     description: "",
     price: "",
     category: [],
-    avg_time_taken: "",
+    counter: 1,
     veg_nonveg_egg: "veg",
     is_available: true,
     image: "https://placehold.co/300",
@@ -87,7 +86,7 @@ const Menu = () => {
     const newItemWithId = {
       ...newItem,
       price: Number.parseFloat(newItem.price),
-      avg_time_taken: Number.parseInt(newItem.avg_time_taken),
+      counter: Number.parseInt(newItem.counter),
     }
     console.log("New Item: ", newItemWithId)
     axios.post("admin/menu/add/", newItemWithId, {
@@ -107,7 +106,7 @@ const Menu = () => {
       description: "",
       price: "",
       category: [],
-      avg_time_taken: "",
+      counter: 1,
       veg_nonveg_egg: "veg",
       is_available: true,
       image: "https://placehold.co/300",
@@ -125,7 +124,7 @@ const Menu = () => {
     const updatedItem = {
       ...currentItem,
       price: Number.parseFloat(currentItem.price),
-      avg_time_taken: Number.parseInt(currentItem.avg_time_taken),
+      counter: Number.parseInt(currentItem.counter),
     }
     
     axios.put(`admin/menu/${currentItem.id}/`, updatedItem, {
@@ -241,16 +240,19 @@ const Menu = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="avg_time_taken">Preparation Time (mins)</label>
-                      <input
-                        type="number"
-                        id="avg_time_taken"
-                        name="avg_time_taken"
-                        value={newItem.avg_time_taken}
-                        onChange={handleInputChange}
-                        min="1"
+                      <label htmlFor="counter">Counter</label>
+                      <select 
+                        id="counter" 
+                        name="counter" 
+                        value={newItem.counter} 
+                        onChange={handleInputChange} 
                         required
-                      />
+                      >
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                      </select>
                     </div>
 
                     <div className="form-group">
@@ -357,16 +359,19 @@ const Menu = () => {
 
                   <div className="form-row">
                     <div className="form-group">
-                      <label htmlFor="edit-avg-time">Preparation Time (mins)</label>
-                      <input
-                        type="number"
-                        id="edit-avg-time"
-                        name="avg_time_taken"
-                        value={currentItem.avg_time_taken}
-                        onChange={handleInputChange}
-                        min="1"
+                      <label htmlFor="edit-counter">Counter</label>
+                      <select 
+                        id="edit-counter" 
+                        name="counter" 
+                        value={currentItem.counter} 
+                        onChange={handleInputChange} 
                         required
-                      />
+                      >
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                      </select>
                     </div>
 
                     <div className="form-group">
@@ -427,7 +432,7 @@ const Menu = () => {
                       <strong>Categories:</strong> [{item.category.join(", ")}]
                     </p>
                     <p>
-                      <strong>Avg Time:</strong> {item.avg_time_taken} mins
+                      <strong>Counter:</strong> {item.counter}
                     </p>
                     <p>
                       <strong>Type:</strong> {item.veg_nonveg_egg}
