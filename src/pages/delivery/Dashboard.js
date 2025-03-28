@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { authActions } from "../../store/slices/authSlice"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
@@ -30,14 +32,15 @@ const DeliveryDashboard = () => {
   const [deliveries, setDeliveries] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
 
+  const token = useSelector((state) => state.auth.token)
+  const deliverymanId = useSelector((state) => state.auth.deliverymanId)
+  const deliverymanName = useSelector((state) => state.auth.name)
+
+
   const handleSearch = (event) => {
     setSearchQuery(event.target.value)
   }
 
-  const user = JSON.parse(localStorage.getItem("user"))
-  const deliverymanId = user.deliveryManId
-  const token = user.token
-  const deliverymanName = user.name
 
   useEffect(() => {
     const deliveriesSocketUrl = `ws://localhost:8000/ws/deliveryman/${deliverymanId}/`

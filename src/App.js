@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { useSelector } from "react-redux"
 import Login from "./pages/Login"
 import AdminDashboard from "./pages/admin/Dashboard"
 import AdminOrders from "./pages/admin/Orders"
@@ -6,13 +7,13 @@ import AdminOrders from "./pages/admin/Orders"
 import DeliveryManRegistration from "./pages/admin/DeliveryManRegisteration"
 import AdminMenu from "./pages/admin/Menu"
 import DeliveryDashboard from "./pages/delivery/Dashboard"
-import { AuthProvider } from "./contexts/AuthContext"
 import ProtectedRoute from "./components/ProtectedRoute"
 import "./App.css"
 
 function App() {
+  const token = useSelector((state) => state.auth.token)
+  const role = useSelector((state) => state.auth.role)
   return (
-    <AuthProvider>
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
@@ -86,10 +87,9 @@ function App() {
           />
 
           {/* Default Route */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<Navigate to={token ? (role === "admin" ? "/admin/dashboard" : "/delivery/dashboard") : "/login"} replace/>} />
         </Routes>
       </Router>
-    </AuthProvider>
   )
 }
 

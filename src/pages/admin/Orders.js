@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
+import { useSelector } from "react-redux"
+import { authActions } from "../../store/slices/authSlice"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
 import CancellationModal from "../../components/CancellationModal"
@@ -26,6 +28,9 @@ const formatTime = (time) => {
 }
 
 const Orders = () => {
+
+  const token = useSelector((state) => state.auth.token)
+
   const [activeTab, setActiveTab] = useState("all")
   const [activeCounter, setActiveCounter] = useState("all")
   const [orders, setOrders] = useState([])
@@ -40,18 +45,11 @@ const Orders = () => {
     // console.log("Search query: ", event.target.value)
   }
 
-  const user = JSON.parse(localStorage.getItem("user"))
-
   // fetch deliveryMen
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (!storedUser) return
-
-    const user = JSON.parse(storedUser)
-    if (!user.token) return
 
     axios.get("admin/deliverymen/",
-        { headers: { Authorization: `Token ${user.token}` } }
+        { headers: { Authorization: `Token ${token}` } }
       )
       .then(response => {
         console.log("Delivery Men: ", response.data)
@@ -180,13 +178,13 @@ const Orders = () => {
       {
         delivery_man: order.delivery_man_details?.id
       },
-      { headers: { Authorization: `Token ${user.token}` } }
+      { headers: { Authorization: `Token ${token}` } }
     )
     .then(response => {
       console.log(response.data)
       axios.put('orders/' + order.id + '/update-status/', 
         { status: "out_for_delivery" },
-        { headers: { Authorization: `Token ${user.token}` } }
+        { headers: { Authorization: `Token ${token}` } }
       ).then(response => {
         console.log("Order status updated: ", response.data)
         console.log("Delivery person assigned to order: ", response.data)
@@ -234,7 +232,7 @@ const Orders = () => {
     }
     axios.put('orders/' + order.id + '/update-status/', 
       { status: status },
-      { headers: { Authorization: `Token ${user.token}` } }
+      { headers: { Authorization: `Token ${token}` } }
     )
     .then(response => {
       console.log("Order status updated: ", response.data)
@@ -248,6 +246,7 @@ const Orders = () => {
     })
     .catch(error => {
       console.error("Error updating order status: ", error)
+      alert("Failed to update order status")
     })
   }
 
@@ -257,7 +256,7 @@ const Orders = () => {
       {
         status: "ready"
       },
-      { headers: { Authorization: `Token ${user.token}` } }
+      { headers: { Authorization: `Token ${token}` } }
     ).then(
       response => {
         console.log("Item ready status updated: ", response.data)
@@ -287,6 +286,7 @@ const Orders = () => {
       }
     ).catch(error => {
       console.error("Error updating item ready status: ", error)
+      alert("Failed to update item ready status")
     })
   };
 
@@ -295,7 +295,7 @@ const Orders = () => {
       {
         status: "completed"
       },
-      { headers: { Authorization: `Token ${user.token}` } }
+      { headers: { Authorization: `Token ${token}` } }
     ).then(
       response => {
         console.log("Item completed status updated: ", response.data)
@@ -325,6 +325,7 @@ const Orders = () => {
       }
     ).catch(error => {
       console.error("Error updating item completed status: ", error)
+      alert("Failed to update item completed status")
     })
   };
 
@@ -337,20 +338,6 @@ const Orders = () => {
     return order.items.every(item => item.status === "ready");
   };
 
-  // const handleCancel = (order) => {
-  //   axios.put("orders/" + order.id + "/cancel/",
-  //     {},
-  //     { headers: { Authorization: `Token ${user.token}` } }
-  //   )
-  //   .then(response => {
-  //     console.log("Order cancelled: ", response.data)
-  //     const updatedOrders = orders.filter((o) => o.id !== order.id)
-  //     setOrders(updatedOrders)
-  //   })
-  //   .catch(error => {
-  //     console.error("Error cancelling order: ", error)
-  //   })
-  // }
 
   const handleCancel = (order) => {
     // Open cancellation modal instead of directly cancelling
@@ -367,7 +354,7 @@ const Orders = () => {
         unavailable_items: cancellationDetails.unavailableItems,
         info: cancellationDetails.cancellationReason
       },
-      { headers: { Authorization: `Token ${user.token}` } }
+      { headers: { Authorization: `Token ${token}` } }
     )
     .then(response => {
       console.log("Order cancelled: ", response.data)

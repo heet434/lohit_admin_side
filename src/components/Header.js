@@ -2,13 +2,44 @@
 
 import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
-import { useAuth } from "../contexts/AuthContext"
+import axios from "axios"
+import { useDispatch, useSelector } from "react-redux"
+import { authActions } from "../store/slices/authSlice"
 
 const Header = (props) => {
+  const token = useSelector((state) => state.auth.token)
+  const role = useSelector((state) => state.auth.role)
+  const dispatch = useDispatch()
   const { title, searchQuery, handleSearch } = props
   const location = useLocation()
-  const { logout } = useAuth()
   const [showMobileMenu, setShowMobileMenu] = useState(true)
+  
+
+  const logout = () => {
+    if (token) {
+      if (role === "admin") {
+        axios.post("logout/", {}, { headers: { Authorization: `Token ${token}` } })
+          .then(() => {
+            console.log("Logged out")
+            dispatch(authActions.logout())
+          })
+          .catch((error) => {
+            console.error(error)
+            alert("Failed to logout")
+          })
+      } else if (role === "delivery") {
+        axios.post("deliveryman/logout/", {}, { headers: { Authorization: `Token ${token}` } })
+          .then(() => {
+            console.log("Logged out")
+            dispatch(authActions.logout())
+          })
+          .catch((error) => {
+            console.error(error)
+            alert("Failed to logout")
+          })
+      }
+    }
+  }  
 
   useEffect(() => {
     // check if the window width is greater than 768px

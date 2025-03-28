@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { authActions } from "../../store/slices/authSlice"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
@@ -34,8 +36,9 @@ const Dashboard = () => {
     setSearchQuery(event.target.value)
   }
 
-  const user = JSON.parse(localStorage.getItem("user"))
-  const token = user?.token
+  const token = useSelector(state => state.auth.token)
+
+  
 
   useEffect(() => {
       axios.get("admin/stats/",

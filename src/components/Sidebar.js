@@ -2,10 +2,46 @@
 
 import { useState } from "react"
 import { Link, useLocation } from "react-router-dom"
-import { useAuth } from "../contexts/AuthContext"
+import { useSelector, useDispatch } from "react-redux"
+import axios from "axios"
+import { authActions } from "../store/slices/authSlice"
 
 const Sidebar = () => {
-  const { currentUser, logout } = useAuth()
+  const token = useSelector((state) => state.auth.token)
+  const role = useSelector((state) => state.auth.role)
+  const email = useSelector((state) => state.auth.email)
+  const name = useSelector((state) => state.auth.name)
+  const phone = useSelector((state) => state.auth.phone)
+  const deliverymanId = useSelector((state) => state.auth.deliverymanId)
+  const dispatch = useDispatch()
+
+  const logout = () => {
+    if (token) {
+      if (role === "admin") {
+        axios.post("logout/", {}, { headers: { Authorization: `Token ${token}` } })
+          .then(() => {
+            console.log("Logged out")
+            dispatch(authActions.logout())
+          })
+          .catch((error) => {
+            console.error(error)
+            alert("Failed to logout")
+          })
+      } else if (role === "delivery") {
+        axios.post("deliveryman/logout/", {}, { headers: { Authorization: `Token ${token}` } })
+          .then(() => {
+            console.log("Logged out")
+            dispatch(authActions.logout())
+          })
+          .catch((error) => {
+            console.error(error)
+            alert("Failed to logout")
+          })
+      }
+    }
+  }
+
+
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -22,8 +58,8 @@ const Sidebar = () => {
       <div className="user-info">
         <div className="avatar">LC</div>
         <div className="user-details">
-          <p className="user-name">{currentUser.name}</p>
-          <p className="user-email">{currentUser.email}</p>
+          <p className="user-name">{name}</p>
+          <p className="user-email">{email}</p>
         </div>
         {/* <button className="options-btn" onClick={toggleMobileMenu}>
           {mobileMenuOpen ? "✕" : "☰"}
@@ -31,7 +67,7 @@ const Sidebar = () => {
       </div>
 
       <div className={`nav-menu ${mobileMenuOpen ? "mobile-open" : ""}`}>
-        {currentUser.role === "admin" && (
+        {role === "admin" && (
           <>
             <Link
               to="/admin/dashboard"
@@ -76,7 +112,7 @@ const Sidebar = () => {
           </>
         )}
 
-        {currentUser.role === "delivery" && (
+        {role === "delivery" && (
           <Link
             to="/delivery/dashboard"
             className={`nav-item ${isActive("/delivery/dashboard") ? "active" : ""}`}

@@ -1,12 +1,18 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { authActions } from "../../store/slices/authSlice"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
 import "../../styles/Admin.css"
 
 const DeliveryManRegistration = () => {
+
+  const dispatch = useDispatch()
+  const token = useSelector((state) => state.auth.token)
+
   const [formData, setFormData] = useState({
     name: "",
     phone_number: "",

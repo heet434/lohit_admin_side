@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSelector } from "react-redux"
+import { authActions } from "../../store/slices/authSlice"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
@@ -8,7 +10,9 @@ import "../../styles/Admin.css"
 
 const Menu = () => {
   
+  const token = useSelector((state) => state.auth.token)
   const [searchQuery, setSearchQuery] = useState("")
+  const email = useSelector((state) => state.auth.email)
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value)
@@ -16,8 +20,6 @@ const Menu = () => {
 
   const [menuItems, setMenuItems] = useState([])
   const [foodCategories, setFoodCategories] = useState([])
-
-  const user = JSON.parse(localStorage.getItem("user"))
 
   useEffect(() => {
     axios.get("categories/")
@@ -91,7 +93,7 @@ const Menu = () => {
     }
     console.log("New Item: ", newItemWithId)
     axios.post("admin/menu/add/", newItemWithId, {
-      headers: { Authorization: `Token ${user.token}` },
+      headers: { Authorization: `Token ${token}` },
     })
       .then((response) => {
         console.log("Item added: ", response.data)
@@ -99,6 +101,7 @@ const Menu = () => {
       })
       .catch((error) => {
         console.error("Error adding item:", error)
+        alert("Failed to add item, try again later or contact support")
       })
     
     setShowAddForm(false)
@@ -150,7 +153,7 @@ const Menu = () => {
     }
     
     axios.put(`admin/menu/${currentItem.id}/`, updatedItem, {
-      headers: { Authorization: `Token ${user.token}` },
+      headers: { Authorization: `Token ${token}` },
     })
       .then((response) => {
         console.log("Item updated: ", response.data)
@@ -160,13 +163,14 @@ const Menu = () => {
       })
       .catch((error) => {
         console.error("Error updating item:", error)
+        alert("Failed to update item, try again later or contact support")
       })
   }
 
   const handleDeleteItem = (id) => {
     if (window.confirm("Are you sure you want to delete this item?")) {
       axios.delete(`admin/menu/${id}/`, {
-        headers: { Authorization: `Token ${user.token}` },
+        headers: { Authorization: `Token ${token}` },
       })
         .then(() => {
           console.log("Item deleted successfully")
@@ -174,6 +178,7 @@ const Menu = () => {
         })
         .catch((error) => {
           console.error("Error deleting item:", error)
+          alert("Failed to delete item, try again later or contact support")
         })
     }
   }
@@ -555,7 +560,7 @@ const Menu = () => {
                     </button>
                     <button className="toggle-btn" onClick={() => {
                       axios.patch(`admin/menu/${item.id}/`, { is_available: !item.is_available }, {
-                        headers: { Authorization: `Token ${user.token}` },
+                        headers: { Authorization: `Token ${token}` },
                       })
                         .then((response) => {
                           console.log("Item updated: ", response.data)
@@ -563,6 +568,7 @@ const Menu = () => {
                         })
                         .catch((error) => {
                           console.error("Error updating item:", error)
+                          alert("Failed to update item, try again later or contact support")
                         })
                     }}>
                       Available:

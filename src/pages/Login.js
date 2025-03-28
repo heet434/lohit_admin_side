@@ -2,10 +2,14 @@
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useAuth } from "../contexts/AuthContext"
+import axios from "axios"
+import { useSelector, useDispatch } from "react-redux"
+import { authActions } from "../store/slices/authSlice"
 import "../styles/Login.css"
 
 const Login = () => {
+
+  const dispatch = useDispatch()
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
   const [password, setPassword] = useState("")
@@ -13,7 +17,43 @@ const Login = () => {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
-  const { adminLogin, deliveryLogin } = useAuth()
+  const adminLogin = async (email, password) => {
+      try {
+        const response = await axios.post("login/", { email, password })
+        if (response.data) {
+          const email = response.data.user.email
+          const token = response.data.token
+          dispatch(authActions.loginAdmin({ email, token, role: "admin" }))
+          return true
+        }
+      } catch (error) {
+        console.error(error)
+        alert("Failed to login, contact support")
+        return false
+      }
+      return false
+  }
+
+  const deliveryLogin = async (phone, password) => {
+    const phone_12 = "+91" + phone
+    try {
+      const response = await axios.post("deliveryman/login/", { phone_number: phone_12, password })
+      // console.log(response)
+      if (response.data) {
+        const { phone_number, token } = response.data
+        const deliverymanId = response.data.delivery_man?.id
+        const name = response.data.delivery_man?.name
+        dispatch(authActions.loginDelivery({ phone: phone_number, token, role: "delivery", deliverymanId, name }))
+        return true
+      }
+    } catch (error) {
+      console.error(error)
+      alert("Failed to login, contact support")
+      return false
+    }
+    return false
+  }
+
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
