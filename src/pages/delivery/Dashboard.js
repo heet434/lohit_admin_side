@@ -43,7 +43,7 @@ const DeliveryDashboard = () => {
 
 
   useEffect(() => {
-    const deliveriesSocketUrl = `ws://localhost:8000/ws/deliveryman/${deliverymanId}/`
+    const deliveriesSocketUrl = `${process.env.REACT_APP_WEBSOCKET_URL}/deliveryman/${deliverymanId}/` || `ws://localhost:8000/ws/deliveryman/${deliverymanId}/`
     const deliveriesSocket = new WebSocket(deliveriesSocketUrl)
 
     deliveriesSocket.onopen = () => {

@@ -55,7 +55,8 @@ const Dashboard = () => {
 
 // websocket connection for orders
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/ws/orders/admin/")
+    const ordersWsURL = `${process.env.REACT_APP_WEBSOCKET_URL}/orders/admin/` || "ws://localhost:8000/ws/orders/admin/"
+    const ws = new WebSocket(ordersWsURL)
     ws.onopen = () => {
       console.log("Connected to orders websocket")
     }
@@ -112,6 +113,12 @@ const Dashboard = () => {
           })
         })
       }      
+    }
+    ws.onclose = () => {
+      console.log("Disconnected from orders websocket")
+    }
+    ws.onerror = (error) => {
+      console.error("WebSocket error: ", error)
     }
     return () => {
       ws.close()
