@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { useSelector } from "react-redux"
 import Login from "./pages/Login"
 import AdminDashboard from "./pages/admin/Dashboard"
@@ -15,7 +15,8 @@ function App() {
   const role = useSelector((state) => state.auth.role)
   const FRONTEND_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:3000/"
   return (
-      <Router basename={FRONTEND_BASE_URL}>
+      // <Router basename={FRONTEND_BASE_URL}>
+      <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
 
