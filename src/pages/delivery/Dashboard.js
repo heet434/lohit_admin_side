@@ -66,16 +66,17 @@ const DeliveryDashboard = () => {
       } else if (data.type === "order_update"){
         
         // check if order exists already, if it exists update that order else add new order
-        const updatedDeliveries = deliveries.map((order) => {
-          if (order.id === data.order.id){
-            // calculate total and update the order
-            const total = data.order.items.reduce((acc, item) => acc + item.item_price * item.quantity, 0)
-            return { ...data.order, total }
-          }
-          return order
-        })
-        
-        setDeliveries(updatedDeliveries)
+        const orderDetails = data.order_details
+        const total = orderDetails.items.reduce((acc, item) => acc + parseFloat(item.item_price) * parseInt(item.quantity), 0)
+        const newOrder = { ...orderDetails, total }
+        const existingOrderIndex = deliveries.findIndex(order => order.id === newOrder.id)
+        if (existingOrderIndex !== -1) {
+          const updatedDeliveries = [...deliveries]
+          updatedDeliveries[existingOrderIndex] = newOrder
+          setDeliveries(updatedDeliveries)
+        } else {
+          setDeliveries(prevDeliveries => [...prevDeliveries, newOrder])
+        }
       }}
 
     deliveriesSocket.onclose = () => {
@@ -146,6 +147,18 @@ const DeliveryDashboard = () => {
       )
     }
   )
+
+  // sort orders first by date and then by token number
+  filteredDeliveries.sort((a, b) => {
+    const dateA = new Date(a.date)
+    const dateB = new Date(b.date)
+    if (dateA.getTime() === dateB.getTime()) {
+      return a.token_number - b.token_number
+    }
+    return dateB - dateA
+  })
+  // sort orders by date and then by token number
+  
 
   return (
     <div className="app-container">

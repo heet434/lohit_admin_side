@@ -95,6 +95,7 @@ const Orders = () => {
         })
         setOrders(sortedOrders)
       } else if (data.type === "order_update") {
+        console.log("Order update: ", data.order)
         setOrders((prevOrders) => {
           const existingOrder = prevOrders.find((order) => order.id === data.order.id)
           let updatedOrders;
@@ -181,38 +182,41 @@ const Orders = () => {
   }
 
   const handleAssignDelivery = (order) => {
-    axios.put('orders/' + order.id + '/assign-deliveryman/',
-      {
-        delivery_man: order.delivery_man_details?.id
-      },
+    axios.put(`orders/${order.id}/update-status/`, 
+      { status: "out_for_delivery" },
       { headers: { Authorization: `Token ${token}` } }
     )
     .then(response => {
-      console.log(response.data)
-      axios.put('orders/' + order.id + '/update-status/', 
-        { status: "out_for_delivery" },
+      console.log("Order status updated: ", response.data);
+
+      axios.put(`orders/${order.id}/assign-deliveryman/`,
+        { delivery_man: order.delivery_man_details?.id },
         { headers: { Authorization: `Token ${token}` } }
-      ).then(response => {
-        console.log("Order status updated: ", response.data)
-        console.log("Delivery person assigned to order: ", response.data)
-        // update order status
+      )
+      .then(response => {
+        console.log("Delivery person assigned to order: ", response.data);
+
+        // Update order status
         const updatedOrders = orders.map((o) => {
           if (o.id === order.id) {
-            return { ...o, status: "out_for_delivery" }
+            return { ...o, status: "out_for_delivery" };
           }
-          return o
-        })
-        setOrders(updatedOrders)
-        alert("Delivery person " + order.delivery_man_details?.name + " assigned to order " + order.id)
-      }).catch(error => {
-        console.error("Error updating order status: ", error)
+          return o;
+        });
+
+        setOrders(updatedOrders);
+        alert(`Delivery person ${order.delivery_man_details?.name} assigned to order ${order.id}`);
       })
+      .catch(error => {
+        console.error("Error assigning delivery person: ", error);
+        alert("Error assigning delivery person");
+      });
     })
     .catch(error => {
-      console.error("Error assigning delivery person: ", error)
-      alert("Error assigning delivery person")
-    })
-  }
+      console.error("Error updating order status: ", error);
+      alert("Error updating order status");
+    });
+};
 
   const handleConfirm = (order) => {
     let status = "confirmed"

@@ -85,20 +85,20 @@ const Dashboard = () => {
         setOrders(sortedOrders)
       } else if (data.type === "order_update") {
         setOrders((prevOrders) => {
-          const existingOrder = prevOrders.find((order) => order.id === data.order.id)
+          const existingOrder = prevOrders.find((order) => order.id === data.order_details?.id)
           let updatedOrders;
           if (existingOrder) {
             updatedOrders = prevOrders.map((order) =>
-              order.id === data.order.id ? data.order : order
+              order.id === data.order_details?.id ? data.order_details : order
             )
           } else {
 
             // add total price to new order
-            data.order.total_price = data.order.items.reduce((total, item) => {
+            data.order_details.total_price = data.order_details.items.reduce((total, item) => {
               return total + item.quantity * item.item_price
             }, 0)
 
-            updatedOrders = [data.order, ...prevOrders]
+            updatedOrders = [data.order_details, ...prevOrders]
           }
           return updatedOrders.sort((a, b) => {
             const dateA = new Date(a.date)

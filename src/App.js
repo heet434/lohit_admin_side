@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import { useSelector } from "react-redux"
 import Login from "./pages/Login"
@@ -14,6 +15,29 @@ function App() {
   const token = useSelector((state) => state.auth.token)
   const role = useSelector((state) => state.auth.role)
   const FRONTEND_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:3000/"
+
+  // check if token is expired
+
+  // useEffect(() => {
+  //   const checkTokenExpiration = () => {
+  //     const token = localStorage.getItem("token")
+  //     if (token) {
+  //       const payload = JSON.parse(atob(token.split(".")[1]))
+  //       const expirationTime = payload.exp * 1000
+  //       const currentTime = Date.now()
+  //       if (currentTime > expirationTime) {
+  //         // Token is expired
+  //         localStorage.removeItem("token")
+  //         localStorage.removeItem("role")
+  //         window.location.href = "/login"
+  //       }
+  //     }
+  //   }
+
+  //   checkTokenExpiration()
+  // }
+  // , [])
+
   return (
       // <Router basename={FRONTEND_BASE_URL}>
       <Router>
