@@ -13,8 +13,9 @@ import "./App.css"
 function App() {
   const token = useSelector((state) => state.auth.token)
   const role = useSelector((state) => state.auth.role)
+  const FRONTEND_BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:3000/"
   return (
-      <Router>
+      <Router basename={FRONTEND_BASE_URL}>
         <Routes>
           <Route path="/login" element={<Login />} />
 
