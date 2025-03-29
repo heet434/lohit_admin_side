@@ -88,6 +88,8 @@ function App() {
 
           {/* Default Route */}
           <Route path="/" element={<Navigate to={token ? (role === "admin" ? "/admin/dashboard" : "/delivery/dashboard") : "/login"} replace/>} />
+          {/* 404 Route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
   )
