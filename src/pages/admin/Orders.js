@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import axios from "axios"
 import { useSelector } from "react-redux"
+import { ThreeDots } from "react-loader-spinner"
 import { authActions } from "../../store/slices/authSlice"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
@@ -36,6 +37,8 @@ const Orders = () => {
   const [orders, setOrders] = useState([])
   const [deliveryMen, setDeliveryMen] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false)
   const [orderToCancel, setOrderToCancel] = useState(null)
@@ -45,24 +48,55 @@ const Orders = () => {
     // console.log("Search query: ", event.target.value)
   }
 
-  // fetch deliveryMen
+  // fetch deliveryMen and orders from API
   useEffect(() => {
 
     axios.get("admin/deliverymen/",
         { headers: { Authorization: `Token ${token}` } }
       )
       .then(response => {
-        console.log("Delivery Men: ", response.data)
         setDeliveryMen(response.data)
       })
       .catch(error => {
         console.error("Error fetching deliverymen: ", error)
       }
     )
-    
+
+    axios.get("admin/orders/",
+      {
+        headers: { Authorization: `Token ${token}` }
+      }
+    ).then(response => {
+      // sort orders by token number
+      const sortedOrders = response.data?.sort((a, b) => {
+        const dateA = new Date(a.date)
+        const dateB = new Date(b.date)
+        if (dateA < dateB) {
+          return 1
+        } else if (dateA > dateB) {
+          return -1
+        } else {
+          return b.token_number - a.token_number
+        }
+      })
+      // calculate total price for each order using items
+      sortedOrders.forEach((order) => {
+        order.total_price = order.items.reduce((total, item) => {
+          return total + item.quantity * item.item_price
+        }, 0)
+      })
+      setOrders(sortedOrders)
+      setLoading(false)
+    }
+    ).catch(error => {
+      console.error("Error fetching orders: ", error)
+      setError(error)
+      setLoading(false)
+    })
+
   }, [])
 
-  // get orders using WebSockets
+  // get order updates using WebSockets
   useEffect(() => {
     const ordersWsURL = `${process.env.REACT_APP_WEBSOCKET_URL}/orders/admin/` || "ws://localhost:8000/ws/orders/admin/"
     const ws = new WebSocket(ordersWsURL)
@@ -72,29 +106,28 @@ const Orders = () => {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data)
 
-      console.log("Orders data: ", data)
-
-      if (data.type === "initial_orders") {
-        // sort orders by token number
-        const sortedOrders = data.orders?.sort((a, b) => {
-          const dateA = new Date(a.date)
-          const dateB = new Date(b.date)
-          if (dateA < dateB) {
-            return 1
-          } else if (dateA > dateB) {
-            return -1
-          } else {
-            return b.token_number - a.token_number
-          }
-        })
-        // calculate total price for each order using items
-        sortedOrders.forEach((order) => {
-          order.total_price = order.items.reduce((total, item) => {
-            return total + item.quantity * item.item_price
-          }, 0)
-        })
-        setOrders(sortedOrders)
-      } else if (data.type === "order_update") {
+      // if (data.type === "initial_orders") {
+      //   // sort orders by token number
+      //   const sortedOrders = data.orders?.sort((a, b) => {
+      //     const dateA = new Date(a.date)
+      //     const dateB = new Date(b.date)
+      //     if (dateA < dateB) {
+      //       return 1
+      //     } else if (dateA > dateB) {
+      //       return -1
+      //     } else {
+      //       return b.token_number - a.token_number
+      //     }
+      //   })
+      //   // calculate total price for each order using items
+      //   sortedOrders.forEach((order) => {
+      //     order.total_price = order.items.reduce((total, item) => {
+      //       return total + item.quantity * item.item_price
+      //     }, 0)
+      //   })
+      //   setOrders(sortedOrders)
+      // } else if (data.type === "order_update") {
+      if (data.type === "order_update" || data.type === "order_create") {
         console.log("Order update: ", data.order)
         setOrders((prevOrders) => {
           const existingOrder = prevOrders.find((order) => order.id === data.order.id)
@@ -126,8 +159,6 @@ const Orders = () => {
             }, 0)
 
             updatedOrders = [data.order, ...prevOrders]
-            console.log("New order: ", data.order)
-            console.log("Updated orders: ", updatedOrders)
           }
           return updatedOrders.sort((a, b) => {
             const dateA = new Date(a.date)
@@ -458,6 +489,24 @@ const Orders = () => {
   return (
     <div className="app-container">
       <Sidebar />
+      {loading ? (
+        <div className="loading-container-main">
+          <ThreeDots
+            height="80"
+            width="80"
+            radius="9"
+            color="black"
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{}}
+            wrapperClassName=""
+            visible={true}
+          />
+        </div>
+      ) : error ? (
+        <div className="error-container-main">
+          <p><strong>Error: </strong>{error.message}</p>
+        </div>
+      ) : (
       <div className="main-content">
         {isCancellationModalOpen && orderToCancel && (
             <CancellationModal
@@ -607,6 +656,7 @@ const Orders = () => {
           </div>
         </div>
       </div>
+      )}
     </div>
   )
 }
