@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/lohit_admin_side/static/css/main.486bd7a7.css",
-    "main.js": "/lohit_admin_side/static/js/main.296952bf.js",
+    "main.css": "/lohit_admin_side/static/css/main.c672c4ab.css",
+    "main.js": "/lohit_admin_side/static/js/main.dfd994c0.js",
     "index.html": "/lohit_admin_side/index.html",
-    "main.486bd7a7.css.map": "/lohit_admin_side/static/css/main.486bd7a7.css.map",
-    "main.296952bf.js.map": "/lohit_admin_side/static/js/main.296952bf.js.map"
+    "main.c672c4ab.css.map": "/lohit_admin_side/static/css/main.c672c4ab.css.map",
+    "main.dfd994c0.js.map": "/lohit_admin_side/static/js/main.dfd994c0.js.map"
   },
   "entrypoints": [
-    "static/css/main.486bd7a7.css",
-    "static/js/main.296952bf.js"
+    "static/css/main.c672c4ab.css",
+    "static/js/main.dfd994c0.js"
   ]
 }
