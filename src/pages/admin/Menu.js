@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSelector } from "react-redux"
+import { ThreeDots } from "react-loader-spinner"
 import { authActions } from "../../store/slices/authSlice"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
@@ -13,6 +14,9 @@ const Menu = () => {
   const token = useSelector((state) => state.auth.token)
   const [searchQuery, setSearchQuery] = useState("")
   const email = useSelector((state) => state.auth.email)
+  const [errorMessage, setErrorMessage] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value)
@@ -28,15 +32,18 @@ const Menu = () => {
       })
       .catch((error) => {
         console.error("Error fetching categories:", error)
+        setError("Failed to fetch categories")
       })
 
     axios.get("menu/")
       .then((response) => {
         setMenuItems(response.data)
-        console.log("Menu Items: ", response.data)
+        setLoading(false)
       })
       .catch((error) => {
         console.error("Error fetching menu items:", error)
+        setError("Failed to fetch menu items")
+        setLoading(false)
       })
   }, [])
 
@@ -193,6 +200,24 @@ const Menu = () => {
   return (
     <div className="app-container">
       <Sidebar />
+      { loading ? (
+        <div className="loading-container-main">
+          <ThreeDots
+            height="100"
+            width="100"
+            radius="9"
+            color="black"
+            ariaLabel="three-dots-loading"
+            wrapperStyle={{}}
+            wrapperClassName=""
+            visible={true}
+          />
+        </div>
+      ) : error ? (
+        <div className="error-container-main">
+          <p><strong>Error: </strong>{errorMessage}</p>
+        </div>
+      ) :
       <div className="main-content">
         <Header title="Menu" searchQuery={searchQuery} handleSearch={handleSearch} />
         <div className="menu-container">
@@ -580,7 +605,7 @@ const Menu = () => {
             ))}
           </div>
         </div>
-      </div>
+      </div>}
     </div>
   )
 }
