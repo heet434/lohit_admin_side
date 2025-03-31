@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import { ThreeDots } from "react-loader-spinner"
 import { authActions } from "../../store/slices/authSlice"
 import axios from "axios"
@@ -10,6 +10,8 @@ import Header from "../../components/Header"
 import "../../styles/Admin.css"
 
 const Menu = () => {
+
+  const dispatch = useDispatch()
   
   const token = useSelector((state) => state.auth.token)
   const [searchQuery, setSearchQuery] = useState("")
@@ -33,6 +35,13 @@ const Menu = () => {
       .catch((error) => {
         console.error("Error fetching categories:", error)
         setError("Failed to fetch categories")
+        if(error.response.status === 401) {
+          alert("Session expired, please login again")
+          dispatch(authActions.logout())
+        }
+        else {
+          setErrorMessage("Error fetching categories")
+        }
       })
 
     axios.get("menu/")
@@ -44,6 +53,13 @@ const Menu = () => {
         console.error("Error fetching menu items:", error)
         setError("Failed to fetch menu items")
         setLoading(false)
+        if (error.response.status === 401) {
+          alert("Session expired, please login again")
+          dispatch(authActions.logout())
+        }
+        else {
+          setErrorMessage("Error fetching menu items")
+        }
       })
   }, [])
 
@@ -109,6 +125,12 @@ const Menu = () => {
       .catch((error) => {
         console.error("Error adding item:", error)
         alert("Failed to add item, try again later or contact support")
+        if (error.response.status === 401) {
+          alert("Session expired, please login again")
+          dispatch(authActions.logout())
+        } else {
+          setErrorMessage("Error fetching stats")
+        }
       })
     
     setShowAddForm(false)
@@ -171,6 +193,12 @@ const Menu = () => {
       .catch((error) => {
         console.error("Error updating item:", error)
         alert("Failed to update item, try again later or contact support")
+        if (error.response.status === 401) {
+          alert("Session expired, please login again")
+          dispatch(authActions.logout())
+        } else {
+          setErrorMessage("Error fetching stats")
+        }
       })
   }
 
@@ -186,6 +214,12 @@ const Menu = () => {
         .catch((error) => {
           console.error("Error deleting item:", error)
           alert("Failed to delete item, try again later or contact support")
+          if (error.response.status === 401) {
+            alert("Session expired, please login again")
+            dispatch(authActions.logout())
+          } else {
+            setErrorMessage("Error fetching stats")
+          }
         })
     }
   }

@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useDispatch, useSelector } from "react-redux"
+import { ThreeDots } from "react-loader-spinner"
 import { authActions } from "../../store/slices/authSlice"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
@@ -28,6 +29,8 @@ const formatTime = (time) => {
 
 const DeliveryDashboard = () => {
 
+  const dispatch = useDispatch()
+
   const [activeTab, setActiveTab] = useState("all")
   const [deliveries, setDeliveries] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
@@ -35,12 +38,38 @@ const DeliveryDashboard = () => {
   const token = useSelector((state) => state.auth.token)
   const deliverymanId = useSelector((state) => state.auth.deliverymanId)
   const deliverymanName = useSelector((state) => state.auth.name)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value)
   }
 
+  // fetch deliveries from API
+  useEffect(() => {
+    axios.get("deliveryman/orders/", {
+      headers: {
+        Authorization: `Token ${token}`
+      }
+    }).then((response) => {
+      const orders = response.data?.orders?.map((order) => {
+        const total = order.items.reduce((acc, item) => acc + parseFloat(item.item_price) * parseInt(item.quantity), 0)
+        return { ...order, total }
+      }
+      )
+      setDeliveries(orders)
+      setLoading(false)
+    }).catch((error) => {
+      console.error(error)
+      setError("Failed to fetch deliveries")
+      setLoading(false)
+      if(error.response?.status === 401) {
+        alert("Unauthorized. Please login again.")
+        dispatch(authActions.logout())
+      }
+    })
+  }, [token])
 
   useEffect(() => {
     const deliveriesSocketUrl = `${process.env.REACT_APP_WEBSOCKET_URL}/deliveryman/${deliverymanId}/` || `ws://localhost:8000/ws/deliveryman/${deliverymanId}/`
@@ -52,19 +81,20 @@ const DeliveryDashboard = () => {
 
     deliveriesSocket.onmessage = (event) => {
       const data = JSON.parse(event.data)
-      console.log(data)
-      if (data.type === "initial_orders"){
-        // calculate total for each order using each item in items and add it as a field
-        const orders = data.orders.map((order) => {
-          const total = order.items.reduce((acc, item) => acc + parseFloat(item.item_price) * parseInt(item.quantity), 0)
-          console.log(total)
-          return { ...order, total }
-        })
+      // if (data.type === "initial_orders"){
+      //   // calculate total for each order using each item in items and add it as a field
+      //   const orders = data.orders.map((order) => {
+      //     const total = order.items.reduce((acc, item) => acc + parseFloat(item.item_price) * parseInt(item.quantity), 0)
+      //     console.log(total)
+      //     return { ...order, total }
+      //   })
 
-        setDeliveries(orders)
+      //   setDeliveries(orders)
         
-      } else if (data.type === "order_update"){
+      // } else if (data.type === "order_update"){
         
+        // check if order exists already, if it exists update that order else add new order
+      if (data.type === "order_update") {
         // check if order exists already, if it exists update that order else add new order
         const orderDetails = data.order_details
         const total = orderDetails.items.reduce((acc, item) => acc + parseFloat(item.item_price) * parseInt(item.quantity), 0)
@@ -95,7 +125,6 @@ const DeliveryDashboard = () => {
       }
     })
       .then((response) => {
-        console.log(response)
         const updatedDeliveries = deliveries.map((order) => {
           if (order.id === orderId) {
             return { ...order, status: "delivered" }
@@ -163,6 +192,22 @@ const DeliveryDashboard = () => {
   return (
     <div className="app-container">
     <Sidebar />
+    {loading ? 
+    <div className="loading-container-main">
+      <ThreeDots
+        height="80"
+        width="80"
+        radius="9"
+        color="black"
+        ariaLabel="three-dots-loading"
+        wrapperStyle={{}}
+        wrapperClassName=""
+        visible={true}
+      />
+    </div> : error ?
+    <div className="error-container-main">
+      <p><strong>Error:</strong> {error}</p>
+    </div> :
     <div className="main-content">
       <Header title="Orders" searchQuery={searchQuery} handleSearch={handleSearch} />
       <div className="orders-container">
@@ -214,6 +259,7 @@ const DeliveryDashboard = () => {
         </div>
       </div>
     </div>
+  }
   </div>
   )
 }

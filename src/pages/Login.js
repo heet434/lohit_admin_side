@@ -28,7 +28,20 @@ const Login = () => {
         }
       } catch (error) {
         console.error(error)
-        alert("Failed to login, contact support")
+        alert("Failed to login.")
+        if(error.response?.status === 401) {
+          setError("Invalid credentials")
+        }
+        if(error.response?.status === 403) {
+          setError("You are not authorized to login as an admin.")
+        }
+        if(error.response?.status === 404) {
+          setError("Admin not found.")
+        }
+        if(error.response?.status === 500) {
+          setError("Internal server error.")
+        }
+        
         return false
       }
       return false
@@ -48,7 +61,19 @@ const Login = () => {
       }
     } catch (error) {
       console.error(error)
-      alert("Failed to login, contact support")
+      alert("Failed to login.")
+      if(error.response?.status === 401) {
+        setError("Invalid credentials")
+      }
+      if(error.response?.status === 403) {
+        setError("You are not authorized to login as a delivery person.")
+      }
+      if(error.response?.status === 404) {
+        setError("Delivery person not found.")
+      }
+      if(error.response?.status === 500) {
+        setError("Internal server error.")
+      }
       return false
     }
     return false

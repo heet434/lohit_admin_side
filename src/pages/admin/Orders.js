@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import axios from "axios"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import { ThreeDots } from "react-loader-spinner"
 import { authActions } from "../../store/slices/authSlice"
 import Sidebar from "../../components/Sidebar"
@@ -29,6 +29,8 @@ const formatTime = (time) => {
 }
 
 const Orders = () => {
+
+  const dispatch = useDispatch()
 
   const token = useSelector((state) => state.auth.token)
 
@@ -59,6 +61,11 @@ const Orders = () => {
       })
       .catch(error => {
         console.error("Error fetching deliverymen: ", error)
+        setError(error)
+        if(error.response.status === 401) {
+          alert("Session expired, please login again")
+          dispatch(authActions.logout())
+        }
       }
     )
 
@@ -92,6 +99,10 @@ const Orders = () => {
       console.error("Error fetching orders: ", error)
       setError(error)
       setLoading(false)
+      if(error.response.status === 401) {
+        alert("Session expired, please login again")
+        dispatch(authActions.logout())
+      }
     })
 
   }, [])
@@ -241,11 +252,19 @@ const Orders = () => {
       .catch(error => {
         console.error("Error assigning delivery person: ", error);
         alert("Error assigning delivery person");
+        if(error.response.status === 401) {
+          alert("Session expired, please login again")
+          dispatch(authActions.logout())
+        }
       });
     })
     .catch(error => {
       console.error("Error updating order status: ", error);
       alert("Error updating order status");
+      if(error.response.status === 401) {
+        alert("Session expired, please login again")
+        dispatch(authActions.logout())
+      }
     });
 };
 
@@ -289,6 +308,10 @@ const Orders = () => {
     .catch(error => {
       console.error("Error updating order status: ", error)
       alert("Failed to update order status")
+      if(error.response.status === 401) {
+        alert("Session expired, please login again")
+        dispatch(authActions.logout())
+      }
     })
   }
 
@@ -329,6 +352,10 @@ const Orders = () => {
     ).catch(error => {
       console.error("Error updating item ready status: ", error)
       alert("Failed to update item ready status")
+      if(error.response.status === 401) {
+        alert("Session expired, please login again")
+        dispatch(authActions.logout())
+      }
     })
   };
 
@@ -368,6 +395,10 @@ const Orders = () => {
     ).catch(error => {
       console.error("Error updating item completed status: ", error)
       alert("Failed to update item completed status")
+      if(error.response.status === 401) {
+        alert("Session expired, please login again")
+        dispatch(authActions.logout())
+      }
     })
   };
 
@@ -417,6 +448,12 @@ const Orders = () => {
     .catch(error => {
       console.error("Error cancelling order: ", error)
       alert("Failed to cancel order. Please try again.")
+      setOrderToCancel(null)
+      setIsCancellationModalOpen(false)
+      if(error.response.status === 401) {
+        alert("Session expired, please login again")
+        dispatch(authActions.logout())
+      }
     })
   }
 

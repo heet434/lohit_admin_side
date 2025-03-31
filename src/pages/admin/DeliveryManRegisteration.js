@@ -98,6 +98,11 @@ const DeliveryManRegistration = () => {
     }).catch((err) => {
       console.log(err)
       alert("An error occurred. Please try again.")
+      if(err.response?.status === 401){
+        alert("Unauthorized. Please login again.")
+        dispatch(authActions.logout())
+      }
+
     })
   }
 

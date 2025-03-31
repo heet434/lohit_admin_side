@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react"
-import { useSelector } from "react-redux"
+import { useSelector, useDispatch } from "react-redux"
 import { ThreeDots } from "react-loader-spinner"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
+import { authActions } from "../../store/slices/authSlice"
 import "../../styles/Admin.css"
 
 const formatTime = (time) => {
@@ -25,6 +26,9 @@ const formatTime = (time) => {
 }
 
 const Dashboard = () => {
+
+  const dispatch = useDispatch()
+
   const [orders, setOrders] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
   const [stats, setStats] = useState(null)
@@ -52,6 +56,13 @@ const Dashboard = () => {
         .catch(error => {
           console.log("Error fetching stats: ", error)
           setLoadingStats(false)
+          // if error is for invalid token, log user out and give alert
+          if (error.response.status === 401) {
+            alert("Session expired. Please login again.")
+            dispatch(authActions.logout())
+          } else {
+            setErrorMessage("Error fetching stats")
+          }
         })
   }, [token])
 
@@ -87,6 +98,12 @@ const Dashboard = () => {
         console.log("Error fetching orders: ", error)
         setLoadingOrders(false)
         setErrorMessage("Error fetching orders")
+        if (error.response.status === 401) {
+          dispatch(authActions.logout())
+          setErrorMessage("Session expired. Please login again.")
+        } else {
+          setErrorMessage("Error fetching stats")
+        }
       })
   }, [token])
 

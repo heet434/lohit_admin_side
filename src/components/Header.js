@@ -26,6 +26,9 @@ const Header = (props) => {
           .catch((error) => {
             console.error(error)
             alert("Failed to logout")
+            if (error.response?.status === 401) {
+              dispatch(authActions.logout())
+            }
           })
       } else if (role === "delivery") {
         axios.post("deliveryman/logout/", {}, { headers: { Authorization: `Token ${token}` } })
@@ -36,6 +39,9 @@ const Header = (props) => {
           .catch((error) => {
             console.error(error)
             alert("Failed to logout")
+            if (error.response?.status === 401) {
+              dispatch(authActions.logout())
+            }
           })
       }
     }
