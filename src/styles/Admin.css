@@ -10,7 +10,7 @@
     z-index: 10;
   }
   
-  /* Convert to side panel on larger screens */
+/* Convert to side panel on larger screens */
   @media (min-width: 768px) {
     .sidebar {
       width: 250px;
@@ -190,7 +190,7 @@
     background-color: #f5f5f5;
   }
   
-  /* Header Styles */
+/* Header Styles */
   .app-header {
     background-color: white;
     border-bottom: 1px solid #e0e0e0;
@@ -301,7 +301,19 @@
     color: #666;
   }
   
-  /* Dashboard Styles */
+/* Dashboard Styles */
+
+  .stats-loading-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    display: grid;
+    gap: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+  }
+
   .dashboard-container {
     padding: 15px;
   }
@@ -685,6 +697,17 @@
     .orders-container {
       padding: 20px;
     }
+  }
+
+  .orders-loading-container{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    display: grid;
+    gap: 15px;
+    margin-bottom: 20px;
+    border-radius: 10px;
   }
   
   .order-tabs {

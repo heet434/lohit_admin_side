@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react"
-import { useDispatch, useSelector } from "react-redux"
-import { authActions } from "../../store/slices/authSlice"
+import { useSelector } from "react-redux"
+import { ThreeDots } from "react-loader-spinner"
 import axios from "axios"
 import Sidebar from "../../components/Sidebar"
 import Header from "../../components/Header"
@@ -26,11 +26,11 @@ const formatTime = (time) => {
 
 const Dashboard = () => {
   const [orders, setOrders] = useState([])
-  const [revenue, setRevenue] = useState(0)
-  const [noOfCustomers, setNoOfCustomers] = useState(0)
-  const [noOfDeliveries, setNoOfDeliveries] = useState(0)
   const [searchQuery, setSearchQuery] = useState("")
   const [stats, setStats] = useState(null)
+  const [loadingOrders, setLoadingOrders] = useState(true)
+  const [loadingStats, setLoadingStats] = useState(true)
+  const [errorMessage, setErrorMessage] = useState(null)
 
   const handleSearch = (event) => {
     setSearchQuery(event.target.value)
@@ -47,25 +47,22 @@ const Dashboard = () => {
         })
         .then(response => {
           setStats(response.data)
+          setLoadingStats(false)
         })
         .catch(error => {
           console.log("Error fetching stats: ", error)
+          setLoadingStats(false)
         })
   }, [token])
 
-// websocket connection for orders
+  // fetch orders from API
   useEffect(() => {
-    const ordersWsURL = `${process.env.REACT_APP_WEBSOCKET_URL}/orders/admin/` || "ws://localhost:8000/ws/orders/admin/"
-    const ws = new WebSocket(ordersWsURL)
-    ws.onopen = () => {
-      console.log("Connected to orders websocket")
-    }
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-
-      if (data.type === "initial_orders") {
-        // sort orders by token number
-        const sortedOrders = data.orders?.sort((a, b) => {
+      axios.get("admin/orders/",
+        {
+          headers: { Authorization: `Token ${token}` }
+        })
+      .then(response => {
+        const sortedOrders = response.data?.sort((a, b) => {
           const dateA = new Date(a.date)
           const dateB = new Date(b.date)
           if (dateA < dateB) {
@@ -83,7 +80,49 @@ const Dashboard = () => {
           }, 0)
         })
         setOrders(sortedOrders)
-      } else if (data.type === "order_update") {
+        setLoadingOrders(false)
+      })
+      .catch(error => {
+        // handle error
+        console.log("Error fetching orders: ", error)
+        setLoadingOrders(false)
+        setErrorMessage("Error fetching orders")
+      })
+  }, [token])
+
+// websocket connection for orders
+  useEffect(() => {
+    const ordersWsURL = `${process.env.REACT_APP_WEBSOCKET_URL}/orders/admin/` || "ws://localhost:8000/ws/orders/admin/"
+    const ws = new WebSocket(ordersWsURL)
+    ws.onopen = () => {
+      console.log("Connected to orders websocket")
+    }
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+
+      // if (data.type === "initial_orders") {
+      //   // sort orders by token number
+      //   const sortedOrders = data.orders?.sort((a, b) => {
+      //     const dateA = new Date(a.date)
+      //     const dateB = new Date(b.date)
+      //     if (dateA < dateB) {
+      //       return 1
+      //     } else if (dateA > dateB) {
+      //       return -1
+      //     } else {
+      //       return b.token_number - a.token_number
+      //     }
+      //   })
+      //   // calculate total price for each order using items
+      //   sortedOrders.forEach((order) => {
+      //     order.total_price = order.items.reduce((total, item) => {
+      //       return total + item.quantity * item.item_price
+      //     }, 0)
+      //   })
+      //   setOrders(sortedOrders)
+      //   //setLoadingOrders(false)
+      // } else if (data.type === "order_update") {
+      if (data.type === "order_update") {
         setOrders((prevOrders) => {
           const existingOrder = prevOrders.find((order) => order.id === data.order_details?.id)
           let updatedOrders;
@@ -131,6 +170,18 @@ const Dashboard = () => {
       <div className="main-content">
         <Header searchQuery={searchQuery} handleSearch={handleSearch} title="Lohit Canteen Admin" />
         <div className="dashboard-container">
+          {loadingStats ? 
+          <div className="stats-loading-container">
+            <ThreeDots
+              height="80"
+              width="80"
+              color="black"
+              ariaLabel="three-dots-loading"
+              wrapperStyle={{}}
+              wrapperClassName=""
+              visible={true}
+            />
+          </div> :
           <div className="stats-container">
             <div className="stat-card">
               <div className="stat-icon orders-icon">🛒</div>
@@ -167,14 +218,27 @@ const Dashboard = () => {
                 {/* <p className="stat-change negative">-3% from last week</p> */}
               </div>
             </div>
-          </div>
+          </div>}
 
           <div className="dashboard-grid">
+            {loadingOrders ?
+            <div className="orders-loading-container">
+              <ThreeDots
+                height="80"
+                width="80"
+                color="black"
+                ariaLabel="three-dots-loading"
+                wrapperStyle={{}}
+                wrapperClassName=""
+                visible={true}
+              />
+            </div> :
             <div className="dashboard-card recent-orders">
               <div className="card-header">
                 <h2>Recent Orders</h2>
                 {/* <button className="view-all-btn">View All</button> */}
               </div>
+              {errorMessage ? <div className="error-message">{errorMessage}</div> :
               <div className="card-content">
                 <table className="data-table">
                   <thead>
@@ -206,71 +270,9 @@ const Dashboard = () => {
                   </tbody>
                 </table>
               </div>
+            }
             </div>
-
-            {/* <div className="dashboard-card popular-items">
-              <div className="card-header">
-                <h2>Popular Items</h2>
-                <button className="view-all-btn">View All</button>
-              </div>
-              <div className="card-content">
-                <div className="popular-item">
-                  <img src="/placeholder.svg?height=50&width=50" alt="Pizza" className="item-image" />
-                  <div className="item-details">
-                    <h3>Pizza</h3>
-                    <p>120 orders this week</p>
-                  </div>
-                  <div className="item-stats">
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: "85%" }}></div>
-                    </div>
-                    <p>85%</p>
-                  </div>
-                </div>
-
-                <div className="popular-item">
-                  <img src="/placeholder.svg?height=50&width=50" alt="Chicken Biryani" className="item-image" />
-                  <div className="item-details">
-                    <h3>Chicken Biryani</h3>
-                    <p>95 orders this week</p>
-                  </div>
-                  <div className="item-stats">
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: "70%" }}></div>
-                    </div>
-                    <p>70%</p>
-                  </div>
-                </div>
-
-                <div className="popular-item">
-                  <img src="/placeholder.svg?height=50&width=50" alt="Shawarma" className="item-image" />
-                  <div className="item-details">
-                    <h3>Shawarma</h3>
-                    <p>78 orders this week</p>
-                  </div>
-                  <div className="item-stats">
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: "65%" }}></div>
-                    </div>
-                    <p>65%</p>
-                  </div>
-                </div>
-
-                <div className="popular-item">
-                  <img src="/placeholder.svg?height=50&width=50" alt="Sandwich" className="item-image" />
-                  <div className="item-details">
-                    <h3>Sandwich</h3>
-                    <p>62 orders this week</p>
-                  </div>
-                  <div className="item-stats">
-                    <div className="progress-bar">
-                      <div className="progress" style={{ width: "55%" }}></div>
-                    </div>
-                    <p>55%</p>
-                  </div>
-                </div>
-              </div>
-            </div> */}
+            }
           </div>
         </div>
       </div>
