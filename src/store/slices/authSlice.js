@@ -22,7 +22,7 @@ const saveState = (key,obj) => {
 };
 
 const authSlice = createSlice({
-    name: 'auth',
+    name: 'authLohitAdmin',
     initialState: {
         token: loadState('token', null),
         role: loadState('role', null),
@@ -36,7 +36,7 @@ const authSlice = createSlice({
             state.token = action.payload.token;
             state.role = "admin";
             state.email = action.payload.email;
-            saveState('auth', state);
+            saveState('authLohitAdmin', state);
         },
         loginDelivery(state, action) {
             state.token = action.payload.token;
@@ -44,7 +44,7 @@ const authSlice = createSlice({
             state.phone = action.payload.phone;
             state.deliverymanId = action.payload.deliverymanId;
             state.name = action.payload.name;
-            saveState('auth', state);
+            saveState('authLohitAdmin', state);
         },
         logout(state) {
             state.token = null;
@@ -53,7 +53,7 @@ const authSlice = createSlice({
             state.email = null;
             state.phone = null;
             state.deliverymanId = null;
-            saveState('auth', state);
+            saveState('authLohitAdmin', state);
         }
     },
 });

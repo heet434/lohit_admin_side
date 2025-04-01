@@ -5,7 +5,7 @@ import storage from 'redux-persist/lib/storage';
 import authSlice from './slices/authSlice';
 
 const authPersistConfig = {
-    key: 'auth',
+    key: 'authLohitAdmin',
     storage: storage,
 };
 
